@@ -19,8 +19,6 @@ const slides = [
 
 export default function InfiniteDiagonalCarousel() {
   const [position, setPosition] = useState(4);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
   const [dragStart, setDragStart] = useState<{ x: number; y: number; position: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isSettling, setIsSettling] = useState(false);
@@ -148,60 +146,6 @@ export default function InfiniteDiagonalCarousel() {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-white">
-      <header className="absolute left-0 top-0 z-50 flex w-full items-center justify-between px-8 py-6">
-        <div className="flex items-center">
-          <div
-            className={`flex items-center overflow-hidden rounded-full bg-white/35 shadow-[0_18px_45px_rgba(0,0,0,0.12)] backdrop-blur-xl transition-all duration-500 ease-out ${
-              searchOpen ? "w-64 px-3 py-1.5" : "w-11 px-0 py-0"
-            }`}
-          >
-            <button
-              type="button"
-              onClick={() => setSearchOpen((prev) => !prev)}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-black/80 transition hover:bg-white/40 hover:text-black"
-              aria-label={searchOpen ? "Chiudi ricerca" : "Apri ricerca"}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                className="h-5 w-5"
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path d="M16.5 16.5L21 21" />
-              </svg>
-            </button>
-
-            <input
-              value={searchValue}
-              onChange={(event) => setSearchValue(event.target.value)}
-              placeholder="Cerca..."
-              className={`min-w-0 flex-1 bg-transparent text-base tracking-wide text-black/80 outline-none transition-opacity duration-300 placeholder:text-black/35 ${
-                searchOpen ? "opacity-100" : "pointer-events-none opacity-0"
-              }`}
-            />
-          </div>
-        </div>
-
-        <div className="absolute left-1/2 -translate-x-1/2 font-serif text-3xl">
-          NOME SITO
-        </div>
-
-        <nav className="flex items-center gap-8 bg-gray-300 px-8 py-6 text-xl">
-          <span>Art</span>
-          <span className="font-semibold">Fotografia</span>
-          <span>Moda</span>
-
-          <button className="ml-4 flex flex-col gap-1">
-            <span className="h-[2px] w-12 bg-black" />
-            <span className="h-[2px] w-12 bg-black" />
-            <span className="h-[2px] w-12 bg-black" />
-          </button>
-        </nav>
-      </header>
-
       <div
         className="absolute z-10 h-screen w-full cursor-grab touch-none select-none active:cursor-grabbing"
         onPointerDown={handlePointerDown}
