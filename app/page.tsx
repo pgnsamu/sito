@@ -1,7 +1,6 @@
 "use client";
 
 import Grainient from "@/app/components/Grainient";
-import CountDown from "@/app/components/CountDown";
 
 export default function LiquidBackground() {
   return (
@@ -31,9 +30,6 @@ export default function LiquidBackground() {
         zoom={0.6}
       />
       <h1 className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-4xl font-bold">COMING SOOOOON...</h1>
-      <div>
-        <CountDown />
-      </div>
       
     </div>
   );
