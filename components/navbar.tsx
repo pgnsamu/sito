@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, Menu, X } from "lucide-react";
+import Image from "next/image";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -49,7 +50,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setIsSearchOpen((prev) => !prev)}
                 aria-label="Search"
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-${primaryColor} transition hover:bg-white/10`}
+                className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-${primaryColor} transition hover:bg-white/10`}
               >
                 <Search size={22} />
               </button>
@@ -98,9 +99,10 @@ export default function Navbar() {
             </div>
 
             <button
+              type="button"
               onClick={() => setIsOpen(true)}
               aria-label="Open menu"
-              className={`flex h-10 w-10 items-center justify-center rounded-full text-${primaryColor} transition hover:bg-white/10`}
+              className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-${primaryColor} transition hover:bg-white/10`}
             >
               <Menu size={26} />
             </button>
@@ -120,16 +122,17 @@ export default function Navbar() {
 
       {/* MENU LATERALE */}
       <aside
-        className={`fixed right-0 top-0 z-70 flex h-screen w-[85%] max-w-md flex-col bg-white px-8 py-7 shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`fixed right-0 top-0 z-70 flex h-screen w-[85%] sm:w-[420px] lg:w-[360px] flex-col bg-white px-8 py-7 shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between">
 
           <button
+            type="button"
             onClick={() => setIsOpen(false)}
             aria-label="Close menu"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-900 transition hover:bg-neutral-100"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-neutral-900 transition hover:bg-neutral-100"
           >
             <X size={24} />
           </button>
@@ -157,7 +160,7 @@ export default function Navbar() {
 
         <div className="mb-auto mt-auto">
           <a
-            href="#"
+            href="/about"
             onClick={() => setIsOpen(false)}
             className={`inline-block rounded-full border border-neutral-900 px-6 py-3 text-sm font-medium uppercase tracking-wide text-neutral-900 transition hover:bg-neutral-900 hover:text-${secondaryColor}`}
           >
@@ -175,16 +178,30 @@ export default function Navbar() {
               href="mailto:info@nomesito.com"
               className="transition hover:text-black"
             >
-              info@nomesito.com
+              <Image
+                src="/svg/email.svg"
+                alt="Email"
+                width={20}
+                height={20}
+                className="mr-2 inline h-5 w-5"
+              />
+              <span>info@nomesito.com</span>
             </a>
-
             <a
               href="https://instagram.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition hover:text-black"
+              aria-label="Instagram"
+              className="flex items-center gap-2 transition hover:opacity-70"
             >
-              Instagram
+              <Image
+                src="/svg/instagram.svg"
+                alt="Instagram"
+                width={20}
+                height={20}
+                className="h-5 w-5"
+              />
+              <span>instagram.com/nomesito</span>
             </a>
           </div>
         </div>

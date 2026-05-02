@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Grainient from "@/app/components/Grainient";
+import Grainient from "@/components/Grainient";
 
 const launchDate = new Date("2026-06-08T00:00:00").getTime();
 

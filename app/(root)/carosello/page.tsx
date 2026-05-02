@@ -15,6 +15,7 @@ const slides = [
   { id: 9, color: "bg-blue-700" },
   { id: 10, color: "bg-yellow-600" },
   //TODO: chiedere in caso non siano tutti quadrati
+  //TODO: chiedere se si vogliano esporre opere o artisti, nel caso di opera non abbiamo una pagina monoopera
 ];
 
 export default function InfiniteDiagonalCarousel() {

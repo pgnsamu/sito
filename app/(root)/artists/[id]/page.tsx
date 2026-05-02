@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Navbar from "@/app/components/navbar";
 
 const works = Array.from({ length: 40 }, (_, index) => ({
   id: index + 1,
@@ -7,22 +6,24 @@ const works = Array.from({ length: 40 }, (_, index) => ({
   image: `/works/work-${index + 1}.jpg`,
 }));
 
-export default function ArtistWorksPage() {
-  return (
-    <main className="min-h-screen bg-white text-black">
-      <Navbar />
 
-      <section className="px-1 pt-24 pb-20">
-        {/* WORKS GRID */}
-        <div className="grid grid-cols-4 gap-x-2 gap-y-6 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12">
-          {works.map((work, index) => (
-            <WorkItem key={work.id} work={work} index={index} />
-          ))}
-        </div>
-      </section>
-    </main>
+const ArtistWorks = async ( {params}: {params: Promise<{id: string}>} ) => {
+  const { id } = await params;
+
+  //TODO: fetch artist data by id
+
+  return (
+    <section className="px-1 pt-24 pb-20">
+      <h1></h1>
+      {/* WORKS GRID */}
+      <div className="grid grid-cols-4 gap-x-2 gap-y-6 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12">
+        {works.map((work, index) => (
+          <WorkItem key={work.id} work={work} index={index} />
+        ))}
+      </div>
+    </section>
   );
-}
+} 
 
 type Work = {
   id: number;
@@ -62,3 +63,5 @@ function WorkItem({ work, index }: { work: Work; index: number }) {
     </article>
   );
 }
+
+export default ArtistWorks;
