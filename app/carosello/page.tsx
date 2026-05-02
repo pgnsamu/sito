@@ -14,7 +14,7 @@ const slides = [
   { id: 8, color: "bg-red-800" },
   { id: 9, color: "bg-blue-700" },
   { id: 10, color: "bg-yellow-600" },
-
+  //TODO: chiedere in caso non siano tutti quadrati
 ];
 
 export default function InfiniteDiagonalCarousel() {

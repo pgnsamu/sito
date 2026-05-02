@@ -4,7 +4,7 @@ import Grainient from "@/app/components/Grainient";
 
 export default function LiquidBackground() {
   return (
-    <div>
+    <div className="absolute inset-0 z-10">
       <Grainient
         color1="#b8b8b8"
         color2="#5e5e5e"
@@ -29,7 +29,7 @@ export default function LiquidBackground() {
         centerY={0}
         zoom={0.6}
       />
-      <h1 className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-4xl font-bold">COMING SOOOOON...</h1>
+      <h1 className="absolute z-20 top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-4xl font-bold">COMING SOOOOON...</h1>
       
     </div>
   );
