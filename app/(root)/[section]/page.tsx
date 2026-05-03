@@ -1,5 +1,6 @@
 // app/[section]/page.tsx
 import ArtistCard from "@/components/ArtistCard";
+import { redirect } from "next/navigation";
 
 const sectionsData = {
   art: {
@@ -154,7 +155,7 @@ const sectionPage = async ({ params }: { params: Promise<{ section: string }> })
   const data = sectionsData[section];
 
   if (!data) {
-    return <div>Sezione non trovata</div>;
+    redirect("/");
   }
 
   return (
