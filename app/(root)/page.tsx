@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Grainient from "@/components/Grainient";
 
 const launchDate = new Date("2026-06-08T00:00:00").getTime();
@@ -29,6 +30,7 @@ function getTimeLeft() {
 
 export default function ComingSoonPage() {
   const [timeLeft, setTimeLeft] = useState(getTimeLeft());
+  const router = useRouter();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -101,6 +103,14 @@ export default function ComingSoonPage() {
           <button type="submit" className="min-h-12 rounded-full bg-white px-6 font-medium text-black transition hover:bg-white/90">
             Notify me
           </button>
+          <button
+            type="button"
+            onClick={() => router.push("/carosello")}
+            className="min-h-12 ml-3 rounded-full border border-white/10 px-6 font-medium text-white transition hover:bg-white/5"
+          >
+            Vai a Carosello
+          </button>
+          
         </form>
       </section>
     </main>
