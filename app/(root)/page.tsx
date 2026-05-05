@@ -108,7 +108,7 @@ export default function ComingSoonPage() {
             onClick={() => router.push("/carosello")}
             className="min-h-12 ml-3 rounded-full border border-white/10 px-6 font-medium text-white transition hover:bg-white/5"
           >
-            Vai a Carosello
+            go to real homepage
           </button>
           
         </form>
