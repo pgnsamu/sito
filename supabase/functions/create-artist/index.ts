@@ -2,7 +2,48 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://www.tuosito.com",
+  "https://tuosito.com",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin");
+
+  const allowedOrigin =
+    origin && allowedOrigins.includes(origin)
+      ? origin
+      : "https://www.tuosito.com";
+
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, PATCH, DELETE, OPTIONS",
+    "Vary": "Origin",
+  };
+}
+
+function jsonResponse(req: Request, body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...getCorsHeaders(req),
+      "Content-Type": "application/json",
+    },
+  });
+}
+
 Deno.serve(async (req) => {
+  // Handle CORS preflight request
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: getCorsHeaders(req),
+    });
+  }
+
   // Only allow POST requests
   if (req.method !== "POST") {
     return new Response(

@@ -2,21 +2,12 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-}
-
 async function getAdminSupabaseClient(req: Request) {
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader) {
     return {
-      error: jsonResponse({ error: "Missing authorization header" }, 401),
+      error: jsonResponse(req, { error: "Missing authorization header" }, 401),
       supabase: null,
     };
   }
@@ -40,14 +31,14 @@ async function getAdminSupabaseClient(req: Request) {
 
   if (userError || !user) {
     return {
-      error: jsonResponse({ error: "Unauthorized" }, 401),
+      error: jsonResponse(req, { error: "Unauthorized" }, 401),
       supabase: null,
     };
   }
 
   if (user.app_metadata?.role !== "admin") {
     return {
-      error: jsonResponse({ error: "Forbidden" }, 403),
+      error: jsonResponse(req, { error: "Forbidden" }, 403),
       supabase: null,
     };
   }
@@ -55,9 +46,50 @@ async function getAdminSupabaseClient(req: Request) {
   return { error: null, supabase };
 }
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://www.tuosito.com",
+  "https://tuosito.com",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin");
+
+  const allowedOrigin =
+    origin && allowedOrigins.includes(origin)
+      ? origin
+      : "https://www.tuosito.com";
+
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, PATCH, DELETE, OPTIONS",
+    "Vary": "Origin",
+  };
+}
+
+function jsonResponse(req: Request, body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...getCorsHeaders(req),
+      "Content-Type": "application/json",
+    },
+  });
+}
+
 Deno.serve(async (req) => {
+  // Handle CORS preflight request
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: getCorsHeaders(req),
+    });
+  }
+  
   if (req.method !== "DELETE") {
-    return jsonResponse({ error: "Method not allowed" }, 405);
+    return jsonResponse(req, { error: "Method not allowed" }, 405);
   }
 
   const { error: authError, supabase } = await getAdminSupabaseClient(req);
@@ -73,13 +105,13 @@ Deno.serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return jsonResponse({ error: "Invalid JSON body" }, 400);
+    return jsonResponse(req, { error: "Invalid JSON body" }, 400);
   }
 
   const id = Number(body.id);
 
   if (!Number.isInteger(id)) {
-    return jsonResponse({ error: "Valid work id is required" }, 400);
+    return jsonResponse(req, { error: "Valid work id is required" }, 400);
   }
 
   const { data, error } = await supabase
@@ -90,8 +122,8 @@ Deno.serve(async (req) => {
     .single();
 
   if (error) {
-    return jsonResponse({ error: error.message }, 400);
+    return jsonResponse(req, { error: error.message }, 400);
   }
 
-  return jsonResponse({ deletedWork: data }, 200);
+  return jsonResponse(req, { deletedWork: data }, 200);
 });

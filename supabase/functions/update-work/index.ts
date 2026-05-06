@@ -2,21 +2,12 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-}
-
 async function getAdminSupabaseClient(req: Request) {
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader) {
     return {
-      error: jsonResponse({ error: "Missing authorization header" }, 401),
+      error: jsonResponse(req, { error: "Missing authorization header" }, 401),
       supabase: null,
     };
   }
@@ -40,14 +31,14 @@ async function getAdminSupabaseClient(req: Request) {
 
   if (userError || !user) {
     return {
-      error: jsonResponse({ error: "Unauthorized" }, 401),
+      error: jsonResponse(req, { error: "Unauthorized" }, 401),
       supabase: null,
     };
   }
 
   if (user.app_metadata?.role !== "admin") {
     return {
-      error: jsonResponse({ error: "Forbidden" }, 403),
+      error: jsonResponse(req, { error: "Forbidden" }, 403),
       supabase: null,
     };
   }
@@ -55,9 +46,50 @@ async function getAdminSupabaseClient(req: Request) {
   return { error: null, supabase };
 }
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://www.tuosito.com",
+  "https://tuosito.com",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin");
+
+  const allowedOrigin =
+    origin && allowedOrigins.includes(origin)
+      ? origin
+      : "https://www.tuosito.com";
+
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, PATCH, DELETE, OPTIONS",
+    "Vary": "Origin",
+  };
+}
+
+function jsonResponse(req: Request, body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...getCorsHeaders(req),
+      "Content-Type": "application/json",
+    },
+  });
+}
+
 Deno.serve(async (req) => {
+  // Handle CORS preflight request
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: getCorsHeaders(req),
+    });
+  }
+  
   if (req.method !== "PATCH") {
-    return jsonResponse({ error: "Method not allowed" }, 405);
+    return jsonResponse(req, { error: "Method not allowed" }, 405);
   }
 
   const { error: authError, supabase } = await getAdminSupabaseClient(req);
@@ -79,13 +111,13 @@ Deno.serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return jsonResponse({ error: "Invalid JSON body" }, 400);
+    return jsonResponse(req, { error: "Invalid JSON body" }, 400);
   }
 
   const id = Number(body.id);
 
   if (!Number.isInteger(id)) {
-    return jsonResponse({ error: "Valid work id is required" }, 400);
+    return jsonResponse(req, { error: "Valid work id is required" }, 400);
   }
 
   const updates: {
@@ -101,7 +133,7 @@ Deno.serve(async (req) => {
     const name = String(body.name ?? "").trim();
 
     if (!name) {
-      return jsonResponse({ error: "Work name cannot be empty" }, 400);
+      return jsonResponse(req, { error: "Work name cannot be empty" }, 400);
     }
 
     updates.name = name;
@@ -114,7 +146,7 @@ Deno.serve(async (req) => {
       const productionDate = String(body.production_date);
 
       if (Number.isNaN(Date.parse(productionDate))) {
-        return jsonResponse({ error: "Invalid production_date" }, 400);
+        return jsonResponse(req, { error: "Invalid production_date" }, 400);
       }
 
       updates.production_date = productionDate;
@@ -125,7 +157,7 @@ Deno.serve(async (req) => {
     const url = String(body.url ?? "").trim();
 
     if (!url) {
-      return jsonResponse({ error: "Work url cannot be empty" }, 400);
+      return jsonResponse(req, { error: "Work url cannot be empty" }, 400);
     }
 
     updates.url = url;
@@ -139,7 +171,7 @@ Deno.serve(async (req) => {
     const artistId = Number(body.artist_id);
 
     if (!Number.isInteger(artistId)) {
-      return jsonResponse({ error: "Valid artist_id is required" }, 400);
+      return jsonResponse(req, { error: "Valid artist_id is required" }, 400);
     }
 
     updates.artist_id = artistId;
@@ -149,14 +181,14 @@ Deno.serve(async (req) => {
     const genreId = Number(body.genre_id);
 
     if (!Number.isInteger(genreId)) {
-      return jsonResponse({ error: "Valid genre_id is required" }, 400);
+      return jsonResponse(req, { error: "Valid genre_id is required" }, 400);
     }
 
     updates.genre_id = genreId;
   }
 
   if (Object.keys(updates).length === 0) {
-    return jsonResponse({ error: "No fields to update" }, 400);
+    return jsonResponse(req, { error: "No fields to update" }, 400);
   }
 
   const { data, error } = await supabase
@@ -184,8 +216,8 @@ Deno.serve(async (req) => {
     .single();
 
   if (error) {
-    return jsonResponse({ error: error.message }, 400);
+    return jsonResponse(req, { error: error.message }, 400);
   }
 
-  return jsonResponse({ work: data }, 200);
+  return jsonResponse(req, { work: data }, 200);
 });

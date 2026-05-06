@@ -1,23 +1,55 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-function jsonResponse(body: unknown, status = 200) {
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://www.tuosito.com",
+  "https://tuosito.com",
+];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin");
+
+  const allowedOrigin =
+    origin && allowedOrigins.includes(origin)
+      ? origin
+      : "https://www.tuosito.com";
+
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, PATCH, DELETE, OPTIONS",
+    "Vary": "Origin",
+  };
+}
+
+function jsonResponse(req: Request, body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
+      ...getCorsHeaders(req),
       "Content-Type": "application/json",
     },
   });
 }
 
 Deno.serve(async (req) => {
+  // Handle CORS preflight request
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: getCorsHeaders(req),
+    });
+  }
+
   if (req.method !== "POST") {
-    return jsonResponse({ error: "Method not allowed" }, 405);
+    return jsonResponse(req, { error: "Method not allowed" }, 405);
   }
 
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader) {
-    return jsonResponse({ error: "Missing authorization header" }, 401);
+    return jsonResponse(req, { error: "Missing authorization header" }, 401);
   }
 
   const supabase = createClient(
@@ -38,11 +70,11 @@ Deno.serve(async (req) => {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return jsonResponse({ error: "Unauthorized" }, 401);
+    return jsonResponse(req, { error: "Unauthorized" }, 401);
   }
 
   if (user.app_metadata?.role !== "admin") {
-    return jsonResponse({ error: "Forbidden" }, 403);
+    return jsonResponse(req, { error: "Forbidden" }, 403);
   }
 
   let body: {
@@ -57,7 +89,7 @@ Deno.serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return jsonResponse({ error: "Invalid JSON body" }, 400);
+    return jsonResponse(req, { error: "Invalid JSON body" }, 400);
   }
 
   const name = String(body.name ?? "").trim();
@@ -68,23 +100,23 @@ Deno.serve(async (req) => {
   const genreId = Number(body.genre_id);
 
   if (!name) {
-    return jsonResponse({ error: "Work name is required" }, 400);
+    return jsonResponse(req, { error: "Work name is required" }, 400);
   }
 
   if (!url) {
-    return jsonResponse({ error: "Work url is required" }, 400);
+    return jsonResponse(req, { error: "Work url is required" }, 400);
   }
 
   if (!Number.isInteger(artistId)) {
-    return jsonResponse({ error: "Valid artist_id is required" }, 400);
+    return jsonResponse(req, { error: "Valid artist_id is required" }, 400);
   }
 
   if (!Number.isInteger(genreId)) {
-    return jsonResponse({ error: "Valid genre_id is required" }, 400);
+    return jsonResponse(req, { error: "Valid genre_id is required" }, 400);
   }
 
   if (productionDate && Number.isNaN(Date.parse(productionDate))) {
-    return jsonResponse({ error: "Invalid production_date" }, 400);
+    return jsonResponse(req, { error: "Invalid production_date" }, 400);
   }
 
   const { data, error } = await supabase
@@ -118,8 +150,8 @@ Deno.serve(async (req) => {
     .single();
 
   if (error) {
-    return jsonResponse({ error: error.message }, 400);
+    return jsonResponse(req, { error: error.message }, 400);
   }
 
-  return jsonResponse({ work: data }, 201);
+  return jsonResponse(req, { work: data }, 201);
 });
