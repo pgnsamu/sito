@@ -4,6 +4,7 @@ import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, Menu, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -81,20 +82,21 @@ export default function Navbar() {
           <div className="flex flex-1 items-center justify-end gap-8">
             <div className="hidden items-center gap-8 md:flex">
               {sections.map((section) => (
-                <a
+                <Link 
                   key={section}
-                  href={`/${section.toLowerCase()}`}
+                  href={`/${section.toLowerCase()}`} 
                   className={`relative text-sm uppercase tracking-wide text-${primaryColor} transition-all duration-300 hover:opacity-70 ${
                     isActiveSection(section) ? "font-bold" : "font-medium"
                   }`}
-                >
+                  >
                   {section}
                   <span
                     className={`absolute -bottom-0 left-0 h-px bg-current transition-all duration-300 ${
                       isActiveSection(section) ? "w-full opacity-100" : "w-0 opacity-0"
                     }`}
                   />
-                </a>
+                
+                </Link>
               ))}
             </div>
 
@@ -140,7 +142,7 @@ export default function Navbar() {
 
         <div className="mt-14 flex flex-col gap-7">
           {sections.map((section) => (
-            <a
+            <Link
               key={section}
               href={`/${section.toLowerCase()}`}
               onClick={() => setIsOpen(false)}
@@ -154,18 +156,18 @@ export default function Navbar() {
                   isActiveSection(section) ? "w-full opacity-100" : "w-0 opacity-0"
                 }`}
               />
-            </a>
+            </Link>
           ))}
         </div>
 
         <div className="mb-auto mt-auto">
-          <a
+          <Link
             href="/about"
             onClick={() => setIsOpen(false)}
             className={`inline-block rounded-full border border-neutral-900 px-6 py-3 text-sm font-medium uppercase tracking-wide text-neutral-900 transition hover:bg-neutral-900 hover:text-${secondaryColor}`}
           >
             Work with us
-          </a>
+          </Link>
         </div>
 
         <div className="mt-auto border-t border-neutral-200 pt-6">

@@ -1,5 +1,7 @@
 // app/[section]/page.tsx
 import ArtistCard from "@/components/ArtistCard";
+import Link from "next/link";
+
 import { redirect } from "next/navigation";
 
 const sectionsData = {
@@ -179,13 +181,13 @@ const sectionPage = async ({ params }: { params: Promise<{ section: string }> })
       {/* GRID */}
       <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-5">
         {data.items.map((item, index) => (
-          <a href={`/artists/${item.id}`} className="group" key={item.id}>
+          <Link href={`/artists/${item.id}`} className="group" key={item.id}>
             <ArtistCard
               key={item.id}
               artist={item}
               isLower={index % 2 !== 0}
             />
-          </a>
+          </Link>
         ))}
       </div>
     </section>

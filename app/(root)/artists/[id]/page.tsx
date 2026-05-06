@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const works = Array.from({ length: 40 }, (_, index) => ({
   id: index + 1,
@@ -49,7 +50,7 @@ function WorkItem({ work, index }: { work: Work; index: number }) {
 
   return (
     <article className={`group ${sizes[index % sizes.length]}`}>
-      <a href="#" className="block h-full w-full">
+      <Link href="#" className="block h-full w-full">
         <div className="relative h-full w-full overflow-hidden bg-neutral-200">
           <Image
             src={work.image}
@@ -59,7 +60,7 @@ function WorkItem({ work, index }: { work: Work; index: number }) {
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
           />
         </div>
-      </a>
+      </Link>
     </article>
   );
 }
