@@ -174,8 +174,8 @@ export default function InfiniteDiagonalCarousel() {
                 ${isDragging ? "duration-0" : isSettling ? "duration-[1400ms]" : "duration-1000"}
               `}
               style={{
-                width: "460px",
-                height: "520px",
+                width: "clamp(260px, 32vw, 460px)",
+                height: "clamp(300px, 36vw, 520px)",
 
                 left: "50%",
                 top: "50%",

@@ -100,13 +100,13 @@ export default function ComingSoonPage() {
             className="min-h-12 flex-1 rounded-full border border-white/10 bg-white/10 px-5 text-white outline-none backdrop-blur-md placeholder:text-white/40 focus:border-white/30"
           />
           {/* TODO: add functionality to the form */}
-          <button type="submit" className="min-h-12 rounded-full bg-white px-6 font-medium text-black transition hover:bg-white/90">
+          <button type="submit" className="min-h-12 rounded-full bg-white px-10 font-medium text-black transition hover:bg-white/90">
             Notify me
           </button>
           <button
             type="button"
             onClick={() => router.push("/carosello")}
-            className="min-h-12 ml-3 rounded-full border border-white/10 px-6 font-medium text-white transition hover:bg-white/5"
+            className="min-h-12 ml-3 rounded-full border border-white/10 px-10 font-medium text-white transition hover:bg-white/5"
           >
             go to real homepage
           </button>
