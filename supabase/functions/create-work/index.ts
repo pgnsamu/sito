@@ -84,6 +84,7 @@ Deno.serve(async (req) => {
     description?: string;
     artist_id?: number;
     genre_id?: number;
+    visible?: boolean;
   };
 
   try {
@@ -98,6 +99,7 @@ Deno.serve(async (req) => {
   const description = String(body.description ?? "").trim();
   const artistId = Number(body.artist_id);
   const genreId = Number(body.genre_id);
+  const visible = body.visible ?? true;
 
   if (!name) {
     return jsonResponse(req, { error: "Work name is required" }, 400);
@@ -128,6 +130,7 @@ Deno.serve(async (req) => {
       description,
       artist_id: artistId,
       genre_id: genreId,
+      visible: visible
     })
     .select(`
       id,
@@ -145,7 +148,8 @@ Deno.serve(async (req) => {
       genres (
         id,
         name
-      )
+      ), 
+      visible
     `)
     .single();
 

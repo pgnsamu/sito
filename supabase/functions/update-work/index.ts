@@ -106,6 +106,7 @@ Deno.serve(async (req) => {
     description?: string;
     artist_id?: number;
     genre_id?: number;
+    visible?: boolean;
   };
 
   try {
@@ -127,6 +128,7 @@ Deno.serve(async (req) => {
     description?: string;
     artist_id?: number;
     genre_id?: number;
+    visible?: boolean;
   } = {};
 
   if ("name" in body) {
@@ -187,6 +189,10 @@ Deno.serve(async (req) => {
     updates.genre_id = genreId;
   }
 
+  if ("visible" in body) {
+    updates.visible = Boolean(body.visible);
+  }
+
   if (Object.keys(updates).length === 0) {
     return jsonResponse(req, { error: "No fields to update" }, 400);
   }
@@ -211,7 +217,8 @@ Deno.serve(async (req) => {
       genres (
         id,
         name
-      )
+      ),
+      visible
     `)
     .single();
 
