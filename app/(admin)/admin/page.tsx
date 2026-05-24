@@ -1,5 +1,7 @@
 // app/admin/page.tsx
 
+//TODO: add loading state while inserting new data e pure un qualcosa per confermare l'update
+
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdminDashboard from "@/components/admin/AdminDashboard";

@@ -46,25 +46,15 @@ Deno.serve(async (req) => {
 
   // Only allow POST requests
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      {
-        status: 405,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse(req, { error: "Method not allowed" }, 405);
   }
   // Get the authorization header from the request
   const authHeader = req.headers.get("Authorization");
+  
   if (!authHeader) {
-    return new Response(
-      JSON.stringify({ error: "Missing authorization header" }),
-      {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse(req, { error: "Missing authorization header" }, 401);
   }
+  
   // Initialize Supabase client with the authorization header
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -86,24 +76,11 @@ Deno.serve(async (req) => {
 
   // Check if there was an error getting the user or if the user is not authenticated
   if (userError || !user) {
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse(req, { error: "Unauthorized" }, 401);
   }
-  
-  // Check if the user has the "admin" role in their app metadata
+
   if (user.app_metadata?.role !== "admin") {
-    return new Response(
-      JSON.stringify({ error: "Forbidden" }),
-      {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse(req, { error: "Forbidden" }, 403);
   }
 
   // Parse the request body as JSON
@@ -114,16 +91,10 @@ Deno.serve(async (req) => {
   const genreId = Number(body.genreId);
 
   if (!name) {
-    return new Response(
-      JSON.stringify({ error: "Name is required" }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse(req, { error: "Genre name is required" }, 400);
   }
 
-  /* forse non serve perché lo fa lato server questo controllo grazie ai controlli */
+  /* forse non serve perché lo fa lato server questo controllo grazie ai controlli 
   const { data, error } = await supabase
   .from("genres")
   .select("id")
@@ -131,14 +102,9 @@ Deno.serve(async (req) => {
   .single();
   
   if (error || !data) {
-    return new Response(
-      JSON.stringify({ error: "Invalid genre ID" }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse(req, { error: "Invalid genre ID" }, 400);
   }
+  */
 
 
   const { data, error } = await supabase
@@ -152,20 +118,8 @@ Deno.serve(async (req) => {
     .single();
 
   if (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return jsonResponse(req, { error: error.message }, 400);
   }
 
-  return new Response(
-    JSON.stringify({ artist: data }),
-    {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    }
-  );
+  return jsonResponse(req, { artist: data }, 201);
 });
