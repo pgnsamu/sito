@@ -190,6 +190,12 @@ Deno.serve(async (req) => {
   }
 
   if ("visible" in body) {
+    const visible = Boolean(body.visible);
+
+    if (typeof body.visible !== "boolean" && body.visible !== "true" && body.visible !== "false") {
+      return jsonResponse(req, { error: "Visible must be a boolean value" }, 400);
+    }
+    
     updates.visible = Boolean(body.visible);
   }
 
