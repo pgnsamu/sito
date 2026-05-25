@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Artist,
   Genre,
@@ -16,6 +17,7 @@ import {
   updateWork,
 } from "@/lib/api/admin";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 type Tab = "works" | "artists" | "genres";
 
@@ -31,6 +33,8 @@ export default function AdminDashboard({
   initialWorks,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("works");
+
+  const router = useRouter();
 
   const [genres, setGenres] = useState<Genre[]>(initialGenres);
   const [artists, setArtists] = useState<Artist[]>(initialArtists);
@@ -50,6 +54,22 @@ export default function AdminDashboard({
     setError(text);
   }
 
+  async function handleSignOut() {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        throw error;
+      }
+
+      router.push("/admin/login");
+      router.refresh();
+    } catch (err) {
+      showError(err instanceof Error ? err.message : "Errore durante la disconnessione.");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#f8f7f4] px-6 py-8 text-[#151515] md:px-12 lg:px-20">
       <header className="mb-14 flex items-start justify-between border-b border-black/15 pb-8">
@@ -63,12 +83,22 @@ export default function AdminDashboard({
           </h1>
         </div>
 
-        <Link
-          href="/"
-          className="rounded-full border border-black px-6 py-3 text-xs uppercase tracking-[0.25em] transition hover:bg-black hover:text-white"
-        >
-          Site
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="rounded-full border border-black/35 px-6 py-3 text-xs uppercase tracking-[0.25em] transition hover:border-black hover:bg-black hover:text-white"
+          >
+            Disconnetti
+          </button>
+
+          <Link
+            href="/"
+            className="rounded-full border border-black px-6 py-3 text-xs uppercase tracking-[0.25em] transition hover:bg-black hover:text-white"
+          >
+            Site
+          </Link>
+        </div>
       </header>
 
       <nav className="mb-12 flex flex-wrap gap-3">
