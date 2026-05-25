@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
 
   const name = String(body.name ?? "").trim();
   const description = String(body.description ?? "").trim();
-  const genreId = Number(body.genreId);
+  const genreId = Number(body.genre_id);
   const url_image = String(body.url_image ?? "").trim();
 
   if (!name) {
