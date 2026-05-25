@@ -3,147 +3,38 @@ import ArtistCard from "@/components/ArtistCard";
 import Link from "next/link";
 
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+
 
 const sectionsData = {
   art: {
     title: "Art",
     description: "Opere, artisti e collezioni d'arte.",
-    items: [
-      {
-        id: 1,
-        name: "nome artista",
-        image: "/artists/artist-1.jpg",
-      },
-      {
-        id: 2,
-        name: "nome artista",
-        image: "/artists/artist-2.jpg",
-      },
-      {
-        id: 3,
-        name: "nome artista",
-        image: "/artists/artist-3.jpg",
-      },
-      {
-        id: 4,
-        name: "nome artista",
-        image: "/artists/artist-4.jpg",
-      },
-      {
-        id: 5,
-        name: "nome artista",
-        image: "/artists/artist-5.jpg",
-      },
-      {
-        id: 6,
-        name: "nome artista",
-        image: "/artists/artist-6.jpg",
-      },
-      {
-        id: 7,
-        name: "nome artista",
-        image: "/artists/artist-7.jpg",
-      },
-      {
-        id: 8,
-        name: "nome artista",
-        image: "/artists/artist-8.jpg",
-      },
-    ],
+    items: Array.from({ length: 40 }, (_, index) => ({
+      id: index + 1,
+      name: `Nome artista ${String(index + 1).padStart(2, "0")}`,
+      url_image: `/artists/artist-${index + 1}.jpg`,
+    }))
   },
 
   photography: {
     title: "Photography",
     description: "Scatti, serie fotografiche e progetti visuali.",
-    items: [
-      {
-        id: 1,
-        name: "nome artista",
-        image: "/artists/artist-1.jpg",
-      },
-      {
-        id: 2,
-        name: "nome artista",
-        image: "/artists/artist-2.jpg",
-      },
-      {
-        id: 3,
-        name: "nome artista",
-        image: "/artists/artist-3.jpg",
-      },
-      {
-        id: 4,
-        name: "nome artista",
-        image: "/artists/artist-4.jpg",
-      },
-      {
-        id: 5,
-        name: "nome artista",
-        image: "/artists/artist-5.jpg",
-      },
-      {
-        id: 6,
-        name: "nome artista",
-        image: "/artists/artist-6.jpg",
-      },
-      {
-        id: 7,
-        name: "nome artista",
-        image: "/artists/artist-7.jpg",
-      },
-      {
-        id: 8,
-        name: "nome artista",
-        image: "/artists/artist-8.jpg",
-      },
-    ],
+    items: Array.from({ length: 40 }, (_, index) => ({
+      id: index + 1,
+      name: `Nome artista ${String(index + 1).padStart(2, "0")}`,
+      url_image: `/artists/artist-${index + 1}.jpg`,
+    }))
   },
 
   moda: {
     title: "Moda",
     description: "Editoriali, designer e collezioni moda.",
-    items: [
-      {
-        id: 1,
-        name: "nome artista",
-        image: "/artists/artist-1.jpg",
-      },
-      {
-        id: 2,
-        name: "nome artista",
-        image: "/artists/artist-2.jpg",
-      },
-      {
-        id: 3,
-        name: "nome artista",
-        image: "/artists/artist-3.jpg",
-      },
-      {
-        id: 4,
-        name: "nome artista",
-        image: "/artists/artist-4.jpg",
-      },
-      {
-        id: 5,
-        name: "nome artista",
-        image: "/artists/artist-5.jpg",
-      },
-      {
-        id: 6,
-        name: "nome artista",
-        image: "/artists/artist-6.jpg",
-      },
-      {
-        id: 7,
-        name: "nome artista",
-        image: "/artists/artist-7.jpg",
-      },
-      {
-        id: 8,
-        name: "nome artista",
-        image: "/artists/artist-8.jpg",
-      },
-    ],
+    items: Array.from({ length: 40 }, (_, index) => ({
+      id: index + 1,
+      name: `Nome artista ${String(index + 1).padStart(2, "0")}`,
+      url_image: `/artists/artist-${index + 1}.jpg`,
+    }))
   },
 };
 
@@ -155,7 +46,24 @@ const sectionPage = async ({ params }: { params: Promise<{ section: string }> })
 
   const section = resolvedParams.section as SectionKey;
   const data = sectionsData[section];
+  const supabase = await createClient();
 
+  const { data: genreData } = await supabase
+    .from("genres")
+    .select("id")
+    .ilike("name", data?.title ?? section)
+    .maybeSingle();
+
+  const { data: artistsData } = genreData
+    ? await supabase
+        .from("artists")
+        .select("id, name, url_image")
+        .eq("genre_id", genreData.id)
+        .order("name", { ascending: true })
+    : { data: null };
+
+  const artists = artistsData?.length ? artistsData : data?.items;
+  console.log("ARTISTS DATA", genreData, artistsData);
   if (!data) {
     redirect("/");
   }
@@ -180,11 +88,11 @@ const sectionPage = async ({ params }: { params: Promise<{ section: string }> })
 
       {/* GRID */}
       <div className="grid grid-cols-1 gap-x-10 gap-y-16 sm:grid-cols-2 lg:grid-cols-5">
-        {data.items.map((item, index) => (
+        {artists?.map((item, index) => (
           <Link href={`/artists/${item.id}`} className="group" key={item.id}>
             <ArtistCard
               key={item.id}
-              artist={item}
+              artist={{ id: item.id, name: item.name, image: item.url_image }}
               isLower={index % 2 !== 0}
             />
           </Link>
