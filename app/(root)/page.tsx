@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Grainient from "@/components/Grainient";
 
+//TODO: fare check serverside se il valore di launchdate è buono
 const launchDate = new Date("2026-06-08T00:00:00").getTime();
 
 function getTimeLeft() {
   const now = new Date().getTime();
   const difference = launchDate - now;
 
-  //TODO: fare check serverside se il valore di launchdate è buono
   if (difference <= 0) {
     return {
       days: 0,
@@ -29,15 +29,43 @@ function getTimeLeft() {
 }
 
 export default function ComingSoonPage() {
-  const [timeLeft, setTimeLeft] = useState(getTimeLeft());
+
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+
+  //const [timeLeft, setTimeLeft] = useState(getTimeLeft());
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(getTimeLeft());
-    }, 1000);
 
-    return () => clearInterval(timer);
+    const updateTimeLeft = () => {
+
+      setTimeLeft(getTimeLeft());
+
+    };
+
+    updateTimeLeft();
+
+    const timer = setInterval(updateTimeLeft, 1000);
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      updateTimeLeft();
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+
+    return () => {
+
+      clearInterval(timer);
+
+      window.removeEventListener("pageshow", handlePageShow);
+
+    };
+
   }, []);
 
   return (
