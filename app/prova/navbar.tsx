@@ -16,13 +16,13 @@ export default function Navbar2() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const sections = ["Art", "Photography", "Moda"];
+  const sections = ["Art", "Photography", "Fashion"];
 
   const searchableItems = useMemo(
     () => [
       { title: "Art", href: "/art", type: "Section" },
       { title: "Photography", href: "/photography", type: "Section" },
-      { title: "Moda", href: "/moda", type: "Section" },
+      { title: "Fashion", href: "/fashion", type: "Section" },
       { title: "Work with us", href: "/about", type: "Page" },
     ],
     [],

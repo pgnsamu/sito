@@ -52,7 +52,7 @@ export default function InfiniteDiagonalCarousel() {
     const interval = window.setInterval(() => {
       setIsSettling(true);
       setPosition((prev) => prev + 1);
-    }, 3000);
+    }, 2000);
 
     return () => window.clearInterval(interval);
   }, [isDragging]);
@@ -171,7 +171,7 @@ export default function InfiniteDiagonalCarousel() {
               className={`
                 absolute cursor-pointer transition-[transform,opacity,filter] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform
                 ${slide.color}
-                ${isDragging ? "duration-0" : isSettling ? "duration-[1400ms]" : "duration-1000"}
+                ${isDragging ? "duration-0" : isSettling ? "duration-[800ms]" : "duration-800"}
               `}
               style={{
                 width: "clamp(260px, 32vw, 460px)",

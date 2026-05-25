@@ -604,7 +604,7 @@ function WorksSection({
   const [form, setForm] = useState({
     name: "",
     production_date: "",
-    url: "",
+    url_image: "",
     description: "",
     artist_id: "",
     genre_id: "",
@@ -614,12 +614,12 @@ function WorksSection({
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-
+    //TODO: capire perché questo rimane url
     try {
       const result = await createWork({
         name: form.name,
         production_date: form.production_date || null,
-        url: form.url,
+        url: form.url_image,
         description: form.description,
         artist_id: Number(form.artist_id),
         genre_id: Number(form.genre_id),
@@ -630,7 +630,7 @@ function WorksSection({
       setForm({
         name: "",
         production_date: "",
-        url: "",
+        url_image: "",
         description: "",
         artist_id: "",
         genre_id: "",
@@ -646,7 +646,7 @@ function WorksSection({
     id: number;
     name: string;
     production_date: string | null;
-    url: string;
+    url_image: string;
     description: string;
     artist_id: number;
     genre_id: number;
@@ -699,8 +699,8 @@ function WorksSection({
         <Field label="Image URL">
           <input
             className={smallInputClass()}
-            value={form.url}
-            onChange={(e) => setForm((prev) => ({ ...prev, url: e.target.value }))}
+            value={form.url_image}
+            onChange={(e) => setForm((prev) => ({ ...prev, url_image: e.target.value }))}
             placeholder="https://..."
             required
           />
@@ -797,7 +797,7 @@ function EditableWorkCard({
     id: number;
     name: string;
     production_date: string | null;
-    url: string;
+    url_image: string;
     description: string;
     artist_id: number;
     genre_id: number;
@@ -805,7 +805,8 @@ function EditableWorkCard({
   onDelete: (id: number) => Promise<void>;
 }) {
   const [name, setName] = useState(work.name);
-  const [url, setUrl] = useState(work.url);
+  //TOD: e questo pure
+  const [url_image, setUrl_image] = useState(work.url);
   const [description, setDescription] = useState(work.description ?? "");
   const [productionDate, setProductionDate] = useState(work.production_date ?? "");
   const [artistId, setArtistId] = useState(String(work.artist_id));
@@ -818,9 +819,9 @@ function EditableWorkCard({
   return (
     <article className="grid gap-6 border border-black/10 bg-white/35 p-5 md:grid-cols-[160px_1fr] md:p-7">
       <div className="aspect-[3/4] overflow-hidden bg-black/5">
-        {url ? (
+        {url_image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={name} className="h-full w-full object-cover" />
+          <img src={url_image} alt={name} className="h-full w-full object-cover" />
         ) : null}
       </div>
 
@@ -841,8 +842,8 @@ function EditableWorkCard({
           <Field label="Image URL">
             <input
               className={smallInputClass()}
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              value={url_image}
+              onChange={(e) => setUrl_image(e.target.value)}
             />
           </Field>
 
@@ -901,7 +902,7 @@ function EditableWorkCard({
                 id: work.id,
                 name,
                 production_date: productionDate || null,
-                url,
+                url_image,
                 description,
                 artist_id: Number(artistId),
                 genre_id: Number(genreId),
