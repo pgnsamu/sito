@@ -21,13 +21,15 @@ function ArtistCard({
       }`}
     >
       <div className="h-[260px] w-full max-w-[220px] bg-neutral-300 transition-transform duration-500 ease-out group-hover:scale-[1.10]">
-        <Image
-          src={artist.image}
-          alt={artist.name}
-          width={220}
-          height={260}
-          className="h-full w-full object-cover"
-        />
+        {artist.image ? (
+          <Image
+            src={artist.image}
+            alt={artist.name}
+            width={220}
+            height={260}
+            className="h-full w-full object-cover"
+          />
+        ) : null}
       </div>
 
       <h2 className="mt-5 text-center text-2xl font-light transition-[text-shadow,letter-spacing] duration-300 ease-out group-hover:font-semibold group-hover:tracking-[-0.01em] group-hover:[text-shadow:0_0_0.35px_currentColor,0_0_0.35px_currentColor]">
