@@ -28,9 +28,9 @@ const sectionsData = {
     }))
   },
 
-  moda: {
-    title: "Moda",
-    description: "Editoriali, designer e collezioni moda.",
+  fashion: {
+    title: "Fashion",
+    description: "Editoriali, designer e collezioni fashion.",
     items: Array.from({ length: 40 }, (_, index) => ({
       id: index + 1,
       name: `Nome artista ${String(index + 1).padStart(2, "0")}`,
