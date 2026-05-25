@@ -56,10 +56,12 @@ export type Work = {
   id: number;
   name: string;
   production_date: string | null;
-  url: string;
+  url_image: string;
   description: string | null;
   artist_id: number;
   genre_id: number;
+  visible: boolean;
+  featured: boolean;
   created_at?: string;
 };
 
@@ -105,10 +107,12 @@ export function deleteArtist(id: number) {
 export function createWork(input: {
   name: string;
   production_date?: string | null;
-  url: string;
+  url_image: string;
   description?: string;
   artist_id: number;
   genre_id: number;
+  visible?: boolean;
+  featured?: boolean;
 }) {
   return callAdminFunction<{ work: Work }>("create-work", "POST", input);
 }
@@ -117,10 +121,12 @@ export function updateWork(input: {
   id: number;
   name?: string;
   production_date?: string | null;
-  url?: string;
+  url_image?: string;
   description?: string;
   artist_id?: number;
   genre_id?: number;
+  visible?: boolean;
+  featured?: boolean;
 }) {
   return callAdminFunction<{ work: Work }>("update-work", "PATCH", input);
 }

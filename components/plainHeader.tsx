@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import {useRouter } from "next/navigation";
 
 export default function PlainHeader() {
 
   const primaryColor: string = "black"; // Colore primario
-  const secondaryColor: string = "white"; // Colore secondario
+  //const secondaryColor: string = "white"; // Colore secondario
 
   const router = useRouter();
 

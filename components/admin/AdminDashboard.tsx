@@ -619,7 +619,7 @@ function WorksSection({
       const result = await createWork({
         name: form.name,
         production_date: form.production_date || null,
-        url: form.url,
+        url_image: form.url,
         description: form.description,
         artist_id: Number(form.artist_id),
         genre_id: Number(form.genre_id),
@@ -805,7 +805,7 @@ function EditableWorkCard({
   onDelete: (id: number) => Promise<void>;
 }) {
   const [name, setName] = useState(work.name);
-  const [url, setUrl] = useState(work.url);
+  const [url, setUrl] = useState(work.url_image);
   const [description, setDescription] = useState(work.description ?? "");
   const [productionDate, setProductionDate] = useState(work.production_date ?? "");
   const [artistId, setArtistId] = useState(String(work.artist_id));

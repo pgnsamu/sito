@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent } from "react";
+import { createClient } from "@/lib/supabase/server";
 
 const slides = [
   { id: 1, color: "bg-purple-700" },
