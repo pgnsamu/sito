@@ -52,7 +52,7 @@ export default function ComingSoonPage() {
 
     const timer = setInterval(updateTimeLeft, 1000);
 
-    const handlePageShow = (event: PageTransitionEvent) => {
+    const handlePageShow = () => {
       updateTimeLeft();
     };
 

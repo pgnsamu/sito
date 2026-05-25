@@ -5,6 +5,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+//TODO: evitare di caricare tutti gli artisti insieme ma magari caricarli man mano / prevedere una paginazione
 
 const sectionsData = {
   art: {
