@@ -19,6 +19,7 @@ export default async function AdminPage() {
   }
 
   if (user.app_metadata?.role !== "admin") {
+    console.warn("Unauthorized access attempt to admin page by user:", user);
     redirect("/");
   }
 
