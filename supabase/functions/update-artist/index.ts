@@ -103,6 +103,7 @@ Deno.serve(async (req) => {
     name?: string;
     description?: string;
     genre_id?: number | null;
+    url_image?: string;
   };
 
   try {
@@ -121,6 +122,7 @@ Deno.serve(async (req) => {
     name?: string;
     description?: string;
     genre_id?: number | null;
+    url_image?: string;
   } = {};
 
   if ("name" in body) {
@@ -151,6 +153,10 @@ Deno.serve(async (req) => {
     }
   }
 
+  if ("url_image" in body) {
+    updates.url_image = String(body.url_image ?? "").trim();
+  }
+
   if (Object.keys(updates).length === 0) {
     return jsonResponse(req, { error: "No fields to update" }, 400);
   }
@@ -168,7 +174,8 @@ Deno.serve(async (req) => {
       genres (
         id,
         name
-      )
+      ),
+      url_image
     `)
     .single();
 

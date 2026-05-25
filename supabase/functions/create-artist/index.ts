@@ -89,6 +89,7 @@ Deno.serve(async (req) => {
   const name = String(body.name ?? "").trim();
   const description = String(body.description ?? "").trim();
   const genreId = Number(body.genreId);
+  const url_image = String(body.url_image ?? "").trim();
 
   if (!name) {
     return jsonResponse(req, { error: "Genre name is required" }, 400);
@@ -113,6 +114,7 @@ Deno.serve(async (req) => {
       name,
       description,
       genre_id: genreId,
+      url_image,
     })
     .select()
     .single();

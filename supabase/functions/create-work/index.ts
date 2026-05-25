@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
   let body: {
     name?: string;
     production_date?: string | null;
-    url?: string;
+    url_image?: string;
     description?: string;
     artist_id?: number;
     genre_id?: number;
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
 
   const name = String(body.name ?? "").trim();
   const productionDate = body.production_date ?? null;
-  const url = String(body.url ?? "").trim();
+  const url_image = String(body.url_image ?? "").trim();
   const description = String(body.description ?? "").trim();
   const artistId = Number(body.artist_id);
   const genreId = Number(body.genre_id);
@@ -103,8 +103,8 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: "Work name is required" }, 400);
   }
 
-  if (!url) {
-    return jsonResponse(req, { error: "Work url is required" }, 400);
+  if (!url_image) {
+    return jsonResponse(req, { error: "Work url_image is required" }, 400);
   }
 
   if (!Number.isInteger(artistId)) {
@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
     .insert({
       name,
       production_date: productionDate,
-      url,
+      url_image: url_image,
       description,
       artist_id: artistId,
       genre_id: genreId,
@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
       created_at,
       name,
       production_date,
-      url,
+      url_image,
       description,
       artist_id,
       genre_id,

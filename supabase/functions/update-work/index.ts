@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     id?: number;
     name?: string;
     production_date?: string | null;
-    url?: string;
+    url_image?: string;
     description?: string;
     artist_id?: number;
     genre_id?: number;
@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
   const updates: {
     name?: string;
     production_date?: string | null;
-    url?: string;
+    url_image?: string;
     description?: string;
     artist_id?: number;
     genre_id?: number;
@@ -153,14 +153,14 @@ Deno.serve(async (req) => {
     }
   }
 
-  if ("url" in body) {
-    const url = String(body.url ?? "").trim();
+  if ("url_image" in body) {
+    const url_image = String(body.url_image ?? "").trim();
 
-    if (!url) {
-      return jsonResponse(req, { error: "Work url cannot be empty" }, 400);
+    if (!url_image) {
+      return jsonResponse(req, { error: "Work url_image cannot be empty" }, 400);
     }
 
-    updates.url = url;
+    updates.url_image = url_image;
   }
 
   if ("description" in body) {
@@ -200,7 +200,7 @@ Deno.serve(async (req) => {
       created_at,
       name,
       production_date,
-      url,
+      url_image,
       description,
       artist_id,
       genre_id,
