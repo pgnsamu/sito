@@ -608,6 +608,8 @@ function WorksSection({
     description: "",
     artist_id: "",
     genre_id: "",
+    featured: false as boolean,
+    visible: false as boolean,
   });
 
   const canCreateWork = artists.length > 0 && genres.length > 0;
@@ -616,14 +618,29 @@ function WorksSection({
     e.preventDefault();
 
     try {
-      const result = await createWork({
-        name: form.name,
-        production_date: form.production_date || null,
-        url_image: form.url,
-        description: form.description,
-        artist_id: Number(form.artist_id),
-        genre_id: Number(form.genre_id),
+      const supabase = createClient();
+
+      const { data, error } = await supabase.functions.invoke("create-work-with-image", {
+        body: {
+          name: form.name,
+          production_date: form.production_date || null,
+          description: form.description,
+          artist_id: Number(form.artist_id),
+          genre_id: Number(form.genre_id),
+          featured: form.featured,
+          visible: form.visible,
+          image: {
+            url_image: form.url,
+            used_in: null,
+          },
+        },
       });
+
+      if (error) {
+        throw error;
+      }
+
+      const result = data as { work: Work };
 
       setWorks((prev) => [result.work, ...prev]);
 
@@ -634,6 +651,8 @@ function WorksSection({
         description: "",
         artist_id: "",
         genre_id: "",
+        featured: false,
+        visible: false,
       });
 
       showMessage("Opera creata.");
@@ -650,9 +669,15 @@ function WorksSection({
     description: string;
     artist_id: number;
     genre_id: number;
+    featured: boolean | null;
+    visible: boolean | null;
   }) {
     try {
-      const result = await updateWork(input);
+      const result = await updateWork({
+        ...input,
+        featured: input.featured ?? undefined,
+        visible: input.visible ?? undefined,
+      });
       setWorks((prev) => prev.map((work) => (work.id === input.id ? result.work : work)));
       showMessage("Opera aggiornata.");
     } catch (err) {
@@ -762,6 +787,20 @@ function WorksSection({
           </Field>
         </div>
 
+        <div className="lg:col-span-2 grid gap-4 md:grid-cols-2">
+          <BooleanStatusControl
+            label="Featured"
+            value={form.featured}
+            onChange={(value) => setForm((prev) => ({ ...prev, featured: value ?? false }))}
+          />
+
+          <BooleanStatusControl
+            label="Visible"
+            value={form.visible}
+            onChange={(value) => setForm((prev) => ({ ...prev, visible: value ?? false }))}
+          />
+        </div>
+
         <div className="lg:col-span-2">
           <ActionButton type="submit">Add work</ActionButton>
         </div>
@@ -801,15 +840,32 @@ function EditableWorkCard({
     description: string;
     artist_id: number;
     genre_id: number;
+    featured: boolean | null;
+    visible: boolean | null;
   }) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
 }) {
   const [name, setName] = useState(work.name);
-  const [url, setUrl] = useState(work.url_image);
+  const imageUrl =
+    (work as Work & { images?: { url_image?: string | null } | null }).images?.url_image ??
+    (work as Work & { url_image?: string | null }).url_image ??
+    "";
+  const [url, setUrl] = useState(imageUrl);
   const [description, setDescription] = useState(work.description ?? "");
   const [productionDate, setProductionDate] = useState(work.production_date ?? "");
   const [artistId, setArtistId] = useState(String(work.artist_id));
   const [genreId, setGenreId] = useState(String(work.genre_id));
+  const initialFeatured =
+    (work as Work & { featured?: boolean | null }).featured === undefined
+      ? null
+      : (work as Work & { featured?: boolean | null }).featured;
+  const initialVisible =
+    (work as Work & { visible?: boolean | null }).visible === undefined
+      ? null
+      : (work as Work & { visible?: boolean | null }).visible;
+
+  const [featured, setFeatured] = useState<boolean | null>(initialFeatured);
+  const [visible, setVisible] = useState<boolean | null>(initialVisible);
 
   const selectedArtistName = useMemo(() => {
     return artists.find((artist) => String(artist.id) === artistId)?.name ?? "Unknown artist";
@@ -892,6 +948,19 @@ function EditableWorkCard({
               />
             </Field>
           </div>
+          <div className="lg:col-span-2 grid gap-4 md:grid-cols-2">
+            <BooleanStatusControl
+              label="Featured"
+              value={featured}
+              onChange={setFeatured}
+            />
+
+            <BooleanStatusControl
+              label="Visible"
+              value={visible}
+              onChange={setVisible}
+            />
+          </div>
         </div>
 
         <div className="mt-5 flex gap-2">
@@ -905,6 +974,8 @@ function EditableWorkCard({
                 description,
                 artist_id: Number(artistId),
                 genre_id: Number(genreId),
+                featured,
+                visible,
               })
             }
           >
@@ -917,5 +988,49 @@ function EditableWorkCard({
         </div>
       </div>
     </article>
+  );
+}
+
+function BooleanStatusControl({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: boolean | null;
+  onChange: (value: boolean | null) => void;
+}) {
+  function buttonClass(active: boolean) {
+    return `rounded-full border px-4 py-2 text-xs uppercase tracking-[0.18em] transition ${
+      active
+        ? "border-black bg-black text-white"
+        : "border-black/25 text-black/55 hover:border-black hover:text-black"
+    }`;
+  }
+
+  return (
+    <div>
+      <p className="mb-2 block text-xs uppercase tracking-[0.28em] text-black/45">
+        {label}
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className={buttonClass(value === true)}
+          onClick={() => onChange(true)}
+        >
+          True
+        </button>
+
+        <button
+          type="button"
+          className={buttonClass(value === false)}
+          onClick={() => onChange(false)}
+        >
+          False
+        </button>
+      </div>
+    </div>
   );
 }
