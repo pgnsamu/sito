@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/navbar";
+import NavbarSimple from "@/components/navbar copy";
 import "../globals.css";
 
 
@@ -17,7 +18,7 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col" style={{ fontFamily: '"Arial Nova", Arial, sans-serif' }}>
         <header className="relative z-50 shrink-0">
-          <Navbar />
+          <NavbarSimple />
         </header>
         <main className="relative z-0 flex-1">
           {children}
