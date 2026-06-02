@@ -16,13 +16,20 @@ export default function RootLayout({
         />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="SafeAreaBug" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="format-detection" content="telephone=no" />
       </head>
-      <body>
+      <body
+        style={{
+          margin: 0,
+          padding: 0,
+          height: "100vh",
+          fontFamily: "monospace",
+        }}
+      >
+
           {/* Page content */}
           {children}
       </body>

@@ -41,7 +41,7 @@ export default function ComingSoonPage() {
   }, []);
 
   return (
-    <main className="relative min-h-[100svh] overflow-hidden bg-black text-white supports-[height:100dvh]:min-h-[100dvh]">
+    <main className="relative min-h-[100svh] overflow-x-hidden overflow-y-auto bg-black text-white supports-[height:100dvh]:min-h-[100dvh]">
       {/* Background blobs */}
       <div className="fixed inset-0 z-0 bg-black">
         <Grainient
@@ -70,7 +70,7 @@ export default function ComingSoonPage() {
         />
       </div>
 
-      <section className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-6 py-10 text-center supports-[height:100dvh]:min-h-[100dvh]">
+      <section className="relative z-10 flex min-h-[108svh] flex-col items-center justify-center px-6 py-10 text-center supports-[height:100dvh]:min-h-[108dvh]">
         {/*
         <div className="mb-6 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 backdrop-blur-md">
           Something new is coming

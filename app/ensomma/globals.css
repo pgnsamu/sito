@@ -38,6 +38,8 @@ body {
 body {
   min-height: 100svh;
   overflow-x: hidden;
+  overflow-y: auto;
+  background: #000000;
 }
 
 @supports (height: 100dvh) {
