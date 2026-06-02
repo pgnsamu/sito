@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Grainient from "@/components/Grainient";
 
 //TODO: fare check serverside se il valore di launchdate è buono
-const launchDate = new Date("2026-06-08T00:00:00").getTime();
+const launchDate = new Date("2026-06-19T00:00:00").getTime();
 
 function getTimeLeft() {
   const now = new Date().getTime();
@@ -106,7 +106,7 @@ export default function ComingSoonPage() {
         */}
 
         <h1 className="max-w-4xl text-5xl font-bold tracking-tight md:text-7xl">
-          Cooming Soooon....
+          COMING SOON
         </h1>
         {/*
         <p className="mt-6 max-w-xl text-base leading-7 text-white/60 md:text-lg">
