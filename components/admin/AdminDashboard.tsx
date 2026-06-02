@@ -811,7 +811,7 @@ function WorksSection({
           <EditableWorkCard
             key={work.id}
             work={work}
-            artists={artists}
+            artists={artists} 
             genres={genres}
             onUpdate={handleUpdate}
             onDelete={handleDelete}
