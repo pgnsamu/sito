@@ -27,7 +27,6 @@ export default function RootLayout({
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-
       </head>
       <body className="min-h-full flex flex-col">
         <header className="relative z-50 shrink-0">
