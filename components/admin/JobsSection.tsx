@@ -1,4 +1,5 @@
 "use client";
+import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { jobsRequest, type Job, type Application } from "@/lib/api/jobs";
 import { JobFields, buttonStyle, inputStyle } from "@/components/jobs/JobFields";
@@ -67,17 +68,20 @@ export default function JobsSection({ view }: { view: "jobs" | "applications" })
       </form>
       {!jobs.length && <p>Nessuna richiesta di lavoro ricevuta.</p>}
       <div className="divide-y divide-black/15">{jobs.map(job => <article key={job.id} className="flex flex-wrap items-start justify-between gap-5 py-6"><div className="min-w-0"><p className="mb-2 text-xs uppercase tracking-[0.2em]">{statuses[job.status]} · {job.company}</p><h3 className="break-words font-serif text-3xl">{job.title}</h3><p className="mt-2 text-sm text-black/60">{job.location}</p><a className="break-all text-sm underline" href={`mailto:${job.email}`}>{job.email}</a></div><div className="flex flex-wrap items-center gap-3">
-          <select
-            aria-label={`Stato di ${job.title}`}
-            className="rounded-full border border-black bg-white px-4 py-3 text-xs disabled:opacity-50"
-            disabled={busy || editing?.id === job.id}
-            value={job.status}
-            onChange={event => void changeStatus(job.id, event.target.value as Job["status"])}
-          >
-            {Object.entries(statuses).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              aria-label={`Stato di ${job.title}`}
+              className="peer appearance-none rounded-full border border-black bg-white py-3 pl-4 pr-10 text-xs disabled:opacity-50"
+              disabled={busy || editing?.id === job.id}
+              value={job.status}
+              onChange={event => void changeStatus(job.id, event.target.value as Job["status"])}
+            >
+              {Object.entries(statuses).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+            <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 peer-disabled:opacity-50" />
+          </div>
           <button disabled={busy} className={buttonStyle} onClick={() => { setEditing(job); setMessage(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Modifica</button><button disabled={busy} className={buttonStyle} onClick={() => remove(job)}>Elimina</button></div></article>)}</div>
     </> : <>
       <label className="mb-8 block max-w-lg text-xs uppercase tracking-wider">Filtra per posizione<select className={inputStyle} value={filter} onChange={event => setFilter(event.target.value)}><option value="">Tutte le candidature</option>{Array.from(new Set(applications.map(item => `${item.job_title} — ${item.company}`))).map(label => <option key={label}>{label}</option>)}</select></label>
