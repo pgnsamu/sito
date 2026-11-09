@@ -70,7 +70,7 @@ const sectionPage = async ({ params }: { params: Promise<{ section: string }> })
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-6 pt-32 pb-20 md:px-10 bg-white">
+    <section className="min-h-screen bg-white px-6 pb-20 pt-32 text-black md:px-12 lg:px-20">
       {/* SEARCH */}
       <div className="mb-16 flex justify-center">
         <div className="group flex h-12 w-[300px] items-center gap-3 rounded-full border border-neutral-300 bg-white-100 px-5 transition-all duration-300 ease-out hover:border-neutral-400 focus-within:w-[340px] focus-within:border-neutral-900 focus-within:bg-white">
