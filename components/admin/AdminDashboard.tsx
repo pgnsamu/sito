@@ -17,9 +17,10 @@ import {
   updateWork,
 } from "@/lib/api/admin";
 import Link from "next/link";
+import JobsSection from "./JobsSection";
 import { createClient } from "@/lib/supabase/client";
 
-type Tab = "works" | "artists" | "genres";
+type Tab = "works" | "artists" | "genres" | "jobs" | "applications";
 
 type Props = {
   initialGenres: Genre[];
@@ -71,7 +72,7 @@ export default function AdminDashboard({
   }
 
   return (
-    <main className="min-h-screen bg-[#f8f7f4] px-6 py-8 text-[#151515] md:px-12 lg:px-20">
+    <main className="min-h-screen bg-white px-6 py-8 text-[#151515] md:px-12 lg:px-20">
       <header className="mb-14 flex items-start justify-between border-b border-black/15 pb-8">
         <div>
           <p className="mb-4 text-xs uppercase tracking-[0.4em] text-black/45">
@@ -113,7 +114,10 @@ export default function AdminDashboard({
         <TabButton active={activeTab === "genres"} onClick={() => setActiveTab("genres")}>
           Genres
         </TabButton>
+        <TabButton active={activeTab === "jobs"} onClick={() => setActiveTab("jobs")}>Richieste di lavoro</TabButton>
+        <TabButton active={activeTab === "applications"} onClick={() => setActiveTab("applications")}>Candidature</TabButton>
       </nav>
+      {(activeTab === "jobs" || activeTab === "applications") && <JobsSection view={activeTab} />}
 
       {(message || error) && (
         <div

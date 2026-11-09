@@ -412,3 +412,9 @@ entrypoint = "./functions/delete-artist/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/delete-artist/*.html" ]
+
+[functions.jobs]
+enabled = true
+# Public forms are anonymous; admin actions validate the JWT and role in the handler.
+verify_jwt = false
+entrypoint = "./functions/jobs/index.ts"
