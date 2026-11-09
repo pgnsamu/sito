@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { jobsRequest, type PublicJob } from "@/lib/api/jobs";
 import { JobFields, inputStyle, buttonStyle } from "@/components/jobs/JobFields";
 
 export default function JobsPage() {
+  const positionSelect = useRef<HTMLSelectElement>(null);
   const [mode, setMode] = useState("apply");
   const [jobs, setJobs] = useState<PublicJob[]>([]);
   const [selected, setSelected] = useState("");
@@ -32,7 +33,7 @@ export default function JobsPage() {
   }
   const job = jobs.find(item => item.id === selected);
   return <section className="min-h-screen bg-white px-6 pb-20 pt-32 text-black md:px-12 lg:px-20">
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-6xl">
       <p className="mb-4 text-xs uppercase tracking-[0.35em] text-black/45">New opportunities</p>
       <h1 className="mb-12 font-serif text-6xl tracking-[-0.04em] md:text-8xl">Jobs</h1>
       <form onSubmit={submit} className="space-y-8">
@@ -41,7 +42,39 @@ export default function JobsPage() {
           <div className="flex flex-wrap gap-3">{[["apply", "Cerco lavoro"], ["submit", "Sono un’azienda"]].map(([value, label]) => <button key={value} type="button" aria-pressed={mode === value} onClick={() => { setMode(value); setError(""); setMessage(""); }} className={`${buttonStyle} ${mode === value ? 'bg-black text-white' : ''}`}>{label}</button>)}</div>
           <div key={mode} className="grid gap-6 md:grid-cols-2">
             {mode === "submit" ? <JobFields /> : <>
-              <label className="block text-xs uppercase tracking-[0.2em] md:col-span-2">Posizione<select name="job_id" required className={inputStyle} value={selected} onChange={event => setSelected(event.target.value)} disabled={loading || !!loadError}><option value="">{loading ? "Caricamento…" : "Seleziona una posizione"}</option>{jobs.map(item => <option key={item.id} value={item.id}>{item.title} — {item.company}</option>)}</select></label>
+              {jobs.length > 0 && !loading && !loadError && (
+                <section className="mb-6 md:col-span-2" aria-labelledby="open-positions">
+                  <h2 id="open-positions" className="mb-5 text-xs uppercase tracking-[0.25em]">
+                    Posizioni aperte
+                  </h2>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {jobs.map(item => (
+                      <article key={item.id} className="group flex min-h-60 flex-col border border-black/15 bg-neutral-100 p-6 transition-colors hover:bg-neutral-200">
+                        <p className="break-words text-xs uppercase tracking-[0.15em] text-black/65">
+                          {item.company} · {item.location}
+                        </p>
+                        <h3 className="my-6 break-words font-serif text-4xl leading-none tracking-tight">
+                          {item.title}
+                        </h3>
+                        <button
+                          type="button"
+                          aria-label={`Candidati per ${item.title} presso ${item.company}`}
+                          className={`${buttonStyle} mt-auto self-start`}
+                          onClick={() => {
+                            setSelected(item.id);
+                            setError("");
+                            setMessage("");
+                            positionSelect.current?.focus();
+                          }}
+                        >
+                          Candidati
+                        </button>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              )}
+              <label className="block text-xs uppercase tracking-[0.2em] md:col-span-2">Posizione<select ref={positionSelect} name="job_id" required className={inputStyle} value={selected} onChange={event => setSelected(event.target.value)} disabled={loading || !!loadError}><option value="">{loading ? "Caricamento…" : "Seleziona una posizione"}</option>{jobs.map(item => <option key={item.id} value={item.id}>{item.title} — {item.company}</option>)}</select></label>
               {loadError ? <div role="alert" className="md:col-span-2">{loadError} <button type="button" className="underline" onClick={loadJobs}>Riprova</button></div> : !loading && jobs.length === 0 ? <p className="md:col-span-2 text-sm text-black/60">Al momento non ci sono posizioni aperte. Torna a trovarci.</p> : null}
               {job && <div className="border-l border-black/25 pl-4 text-sm md:col-span-2"><p className="mb-2 uppercase tracking-wider">{job.location}</p><p className="whitespace-pre-wrap">{job.description}</p></div>}
               <label className="text-xs uppercase tracking-[0.2em]">Nome e cognome<input name="name" required maxLength={160} autoComplete="name" className={inputStyle} /></label>

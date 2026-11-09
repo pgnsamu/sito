@@ -415,6 +415,11 @@ entrypoint = "./functions/delete-artist/index.ts"
 
 [functions.jobs]
 enabled = true
-# Public forms are anonymous; admin actions validate the JWT and role in the handler.
 verify_jwt = false
 entrypoint = "./functions/jobs/index.ts"
+
+[functions.admin-jobs]
+enabled = true
+# The handler validates the access token with Auth and checks the admin role.
+verify_jwt = false
+entrypoint = "./functions/admin-jobs/index.ts"

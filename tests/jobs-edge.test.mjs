@@ -4,21 +4,26 @@ import vm from 'node:vm';
 import fs from 'node:fs';
 import ts from 'typescript';
 
-const source = ts.transpileModule(fs.readFileSync('supabase/functions/jobs/index.ts', 'utf8').replace(/^import .*;\n/, ''), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }).outputText;
-function handler(db) {
+const read = path => fs.readFileSync(`supabase/functions/${path}`, 'utf8');
+function handler(db, endpoint = 'jobs') {
+  const shared = read('_shared/jobs.ts').replace(/^export .*;$/m, '');
+  const entry = read(`${endpoint}/index.ts`).replace(/^import .*;$/gm, '');
+  const source = ts.transpileModule(shared + entry, {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
+  }).outputText;
   let serve;
   vm.runInNewContext(source, { Request, Response, console: { error() {} }, createClient: () => db, Deno: { env: { get: () => 'test' }, serve: fn => { serve = fn; } } });
   return (body, token) => serve(new Request('https://example.test/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(body) }));
 }
 test('every admin action requires authentication before database access', async () => {
   for (const action of ['list', 'save', 'delete']) {
-    const response = await handler({})({ action });
+    const response = await handler({}, "admin-jobs")({ action });
     assert.equal(response.status, 401);
   }
 });
 test('non-admin users cannot read applications or mutate jobs', async () => {
   for (const action of ['list', 'save', 'delete']) {
-    const response = await handler({ auth: { getUser: async () => ({ data: { user: { app_metadata: { role: 'member' } } } }) } })({ action }, 'token');
+    const response = await handler({ auth: { getUser: async () => ({ data: { user: { app_metadata: { role: 'member' } } } }) } }, 'admin-jobs')({ action }, 'token');
     assert.equal(response.status, 403);
   }
 });

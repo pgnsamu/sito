@@ -12,13 +12,14 @@ npx supabase migration list --linked
 npx supabase db push --linked --dry-run
 npx supabase db push --linked
 npx supabase functions deploy jobs
+npx supabase functions deploy admin-jobs
 ```
 
 Verificare la cronologia delle migrazioni remote prima del push: questa repository non contiene migrazioni delle tabelle preesistenti. Non eseguire reset del database né riparazioni della cronologia senza confrontare lo schema remoto.
 
-La funzione usa SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY fornite automaticamente da Supabase; la chiave service role non va nel frontend. Il sito usa le variabili NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY già previste nel progetto.
+Le funzioni usano SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY fornite automaticamente da Supabase; la chiave service role non va nel frontend. Il sito usa le variabili NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY già previste nel progetto.
 
-`verify_jwt = false` consente i due invii pubblici. Le azioni admin list/save/delete verificano autonomamente il token con auth.getUser e richiedono app_metadata.role = admin. Le email non sono incluse nella risposta GET pubblica. RLS impedisce letture anonime delle tabelle e scritture dirette dal browser.
+`verify_jwt = false` consente i due invii pubblici. La funzione separata `admin-jobs` gestisce list/save/delete e verifica autonomamente il token con auth.getUser e richiede app_metadata.role = admin. Le email non sono incluse nella risposta GET pubblica. RLS impedisce letture anonime delle tabelle e scritture dirette dal browser.
 
 Le richieste pubbliche vengono sempre salvate come pending, indipendentemente dallo stato ricevuto. Le candidature sono accettate solo per posizioni pubblicate; una email può candidarsi una sola volta per posizione. La cancellazione di un annuncio conserva le candidature e una copia del titolo/azienda. Il form include un honeypot; non sostituisce un servizio di rate limiting o CAPTCHA in caso di spam.
 
@@ -31,3 +32,5 @@ Le richieste pubbliche vengono sempre salvate come pending, indipendentemente da
 5. Chiudere la posizione: non deve più accettare candidature.
 6. Eliminare l’annuncio: le candidature devono rimanere consultabili.
 7. Verificare che list/save/delete senza JWT o con un utente non admin restituiscano 401/403.
+
+Il browser chiama le route Next.js sotto `/api/jobs/`. Next.js inoltra le richieste alle Edge Functions, quindi la pagina funziona da localhost senza preflight verso Supabase.

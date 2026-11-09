@@ -3,14 +3,14 @@ export type PublicJob = { id: string; company: string; title: string; location: 
 export type Job = PublicJob & { email: string; status: "pending" | "published" | "closed"; created_at: string };
 export type Application = { id: string; job_id: string | null; job_title: string; company: string; name: string; email: string; message: string; created_at: string };
 export async function jobsRequest<T>(body?: Record<string, unknown>, admin = false): Promise<T> {
-  const headers: Record<string, string> = { "Content-Type": "application/json", apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! };
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (admin) {
     const { data: { session } } = await createClient().auth.getSession();
     if (!session) throw new Error("Accedi nuovamente per continuare.");
     headers.Authorization = `Bearer ${session.access_token}`;
   }
-  const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/jobs`, { method: body ? "POST" : "GET", headers, ...(body ? { body: JSON.stringify(body) } : {}), cache: "no-store" });
+  const response = await fetch(`/api/jobs/${admin ? "admin-jobs" : "jobs"}`, { method: body ? "POST" : "GET", headers, ...(body ? { body: JSON.stringify(body) } : {}), cache: "no-store" });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error || "Servizio non disponibile.");
+  if (!response.ok) throw new Error(result.error || result.message || "Servizio non disponibile.");
   return result;
 }

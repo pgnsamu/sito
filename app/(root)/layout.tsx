@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/navbar";
 import NavbarSimple from "@/components/navbarSimple";
 import "../globals.css";
@@ -21,16 +22,8 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col" style={{ fontFamily: '"Arial Nova", Arial, sans-serif' }}>
         <header className="relative z-50 shrink-0">
-          <NavbarSimple />
+          <Navbar />
         </header>
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-        />
-      </head>
-      <body className="min-h-full flex flex-col" style={{ margin: 0, padding: 0, height: "100vh" }}>
         <main className="relative z-0 flex-1">
           {children}
         </main>
