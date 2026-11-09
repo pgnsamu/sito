@@ -20,7 +20,11 @@ export default async function AdminPage() {
 
   if (user.app_metadata?.role !== "admin") {
     console.warn("Unauthorized access attempt to admin page by user:", user);
-    redirect("/");
+    redirect("/carosello");
+  }
+  if (user.app_metadata?.role === "authenticated") {
+    console.warn("Unauthorized access attempt to admin page by user:", user);
+    redirect("/jobs");
   }
 
   const [{ data: genres }, { data: artists }, { data: works }] =
