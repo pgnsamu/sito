@@ -6,9 +6,8 @@ import ts from 'typescript';
 
 const read = path => fs.readFileSync(`supabase/functions/${path}`, 'utf8');
 function handler(db, endpoint = 'jobs') {
-  const shared = read('_shared/jobs.ts').replace(/^export .*;$/m, '');
   const entry = read(`${endpoint}/index.ts`).replace(/^import .*;$/gm, '');
-  const source = ts.transpileModule(shared + entry, {
+  const source = ts.transpileModule(entry, {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
   }).outputText;
   let serve;

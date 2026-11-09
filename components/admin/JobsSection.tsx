@@ -30,6 +30,20 @@ export default function JobsSection({ view }: { view: "jobs" | "applications" })
     } catch (err) { setError(err instanceof Error ? err.message : "Salvataggio non riuscito."); }
     finally { setBusy(false); }
   }
+  async function changeStatus(id: string, status: Job["status"]) {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const { job } = await jobsRequest<{ job: Job }>({ action: "set-status", id, status }, true);
+      setJobs(prev => prev.map(item => item.id === id ? job : item));
+      setMessage("Stato aggiornato.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Aggiornamento dello stato non riuscito.");
+    } finally {
+      setBusy(false);
+    }
+  }
   async function remove(job: Job) {
     if (!window.confirm(`Eliminare “${job.title}”? Le candidature ricevute verranno conservate.`)) return;
     setBusy(true); setError(""); setMessage("");
@@ -52,7 +66,19 @@ export default function JobsSection({ view }: { view: "jobs" | "applications" })
         <fieldset disabled={busy} className="grid gap-6 md:grid-cols-2"><JobFields job={editing ?? undefined} admin /><div className="flex flex-wrap gap-3 md:col-span-2"><button className={buttonStyle}>{busy ? 'Salvataggio…' : 'Salva richiesta'}</button>{editing && <button type="button" className={buttonStyle} onClick={() => setEditing(null)}>Annulla</button>}</div></fieldset>
       </form>
       {!jobs.length && <p>Nessuna richiesta di lavoro ricevuta.</p>}
-      <div className="divide-y divide-black/15">{jobs.map(job => <article key={job.id} className="flex flex-wrap items-start justify-between gap-5 py-6"><div className="min-w-0"><p className="mb-2 text-xs uppercase tracking-[0.2em]">{statuses[job.status]} · {job.company}</p><h3 className="break-words font-serif text-3xl">{job.title}</h3><p className="mt-2 text-sm text-black/60">{job.location}</p><a className="break-all text-sm underline" href={`mailto:${job.email}`}>{job.email}</a></div><div className="flex gap-3"><button disabled={busy} className={buttonStyle} onClick={() => { setEditing(job); setMessage(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Modifica</button><button disabled={busy} className={buttonStyle} onClick={() => remove(job)}>Elimina</button></div></article>)}</div>
+      <div className="divide-y divide-black/15">{jobs.map(job => <article key={job.id} className="flex flex-wrap items-start justify-between gap-5 py-6"><div className="min-w-0"><p className="mb-2 text-xs uppercase tracking-[0.2em]">{statuses[job.status]} · {job.company}</p><h3 className="break-words font-serif text-3xl">{job.title}</h3><p className="mt-2 text-sm text-black/60">{job.location}</p><a className="break-all text-sm underline" href={`mailto:${job.email}`}>{job.email}</a></div><div className="flex flex-wrap items-center gap-3">
+          <select
+            aria-label={`Stato di ${job.title}`}
+            className="rounded-full border border-black bg-white px-4 py-3 text-xs disabled:opacity-50"
+            disabled={busy || editing?.id === job.id}
+            value={job.status}
+            onChange={event => void changeStatus(job.id, event.target.value as Job["status"])}
+          >
+            {Object.entries(statuses).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+          <button disabled={busy} className={buttonStyle} onClick={() => { setEditing(job); setMessage(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Modifica</button><button disabled={busy} className={buttonStyle} onClick={() => remove(job)}>Elimina</button></div></article>)}</div>
     </> : <>
       <label className="mb-8 block max-w-lg text-xs uppercase tracking-wider">Filtra per posizione<select className={inputStyle} value={filter} onChange={event => setFilter(event.target.value)}><option value="">Tutte le candidature</option>{Array.from(new Set(applications.map(item => `${item.job_title} — ${item.company}`))).map(label => <option key={label}>{label}</option>)}</select></label>
       {!applications.length && <p>Nessuna candidatura ricevuta.</p>}
