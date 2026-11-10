@@ -73,7 +73,14 @@ export default function Navbar() {
           <div className="absolute left-1/2 -translate-x-1/2">
             <h1 className={`text-lg font-semibold tracking-wide text-${primaryColor} md:text-xl`}>
               <a onClick={() => router.push("/")} className="cursor-pointer">
-                Nome Sito
+                <Image
+                  src="/svg/logo porca miseriaccia.svg"
+                  alt="Logo"
+                  width={1000}
+                  height={400}
+                  priority
+                  className="h-auto w-40 md:w-48"
+                />
               </a>
             </h1>
           </div>
