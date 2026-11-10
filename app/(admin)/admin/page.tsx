@@ -27,13 +27,19 @@ export default async function AdminPage() {
     redirect("/jobs");
   }
 
-  const [{ data: genres }, { data: artists }, { data: works }, { data: jobs }] =
-    await Promise.all([
-      supabase.from("genres").select("*").order("name", { ascending: true }),
-      supabase.from("artists").select("*").order("name", { ascending: true }),
-      supabase.from("works").select("*").order("created_at", { ascending: false }),
-      supabase.from("job_requests").select("*").order("created_at", { ascending: false }),
-    ]);
+  const [
+    { data: genres },
+    { data: artists },
+    { data: works },
+    { data: jobs },
+    { data: applications },
+  ] = await Promise.all([
+    supabase.from("genres").select("*").order("name", { ascending: true }),
+    supabase.from("artists").select("*").order("name", { ascending: true }),
+    supabase.from("works").select("*").order("created_at", { ascending: false }),
+    supabase.from("job_requests").select("*").order("created_at", { ascending: false }),
+    supabase.from("job_applications").select("*").order("created_at", { ascending: false }),
+  ]);
 
   return (
     <AdminDashboard
@@ -41,6 +47,7 @@ export default async function AdminPage() {
       initialArtists={artists ?? []}
       initialWorks={works ?? []}
       initialJobs={jobs}
+      initialApplications={applications}
     />
   );
 }

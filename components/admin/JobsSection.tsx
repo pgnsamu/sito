@@ -9,12 +9,14 @@ import { createClient } from "@/lib/supabase/client";
 export default function JobsSection({
   view,
   initialJobs,
+  initialApplications,
 }: {
   view: "jobs" | "applications" | null;
   initialJobs: Job[] | null;
+  initialApplications: Application[] | null;
 }) {
   const [jobs, setJobs] = useState<Job[] | null>(initialJobs);
-  const [applications, setApplications] = useState<Application[] | null>(null);
+  const [applications, setApplications] = useState<Application[] | null>(initialApplications);
   const [loadError, setLoadError] = useState<"jobs" | "applications" | null>(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
