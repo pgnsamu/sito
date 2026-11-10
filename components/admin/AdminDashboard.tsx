@@ -17,6 +17,7 @@ import {
   updateWork,
 } from "@/lib/api/admin";
 import Link from "next/link";
+import type { Job } from "@/lib/api/jobs";
 import JobsSection from "./JobsSection";
 import { createClient } from "@/lib/supabase/client";
 
@@ -26,12 +27,14 @@ type Props = {
   initialGenres: Genre[];
   initialArtists: Artist[];
   initialWorks: Work[];
+  initialJobs: Job[] | null;
 };
 
 export default function AdminDashboard({
   initialGenres,
   initialArtists,
   initialWorks,
+  initialJobs,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("works");
 
@@ -117,7 +120,10 @@ export default function AdminDashboard({
         <TabButton active={activeTab === "jobs"} onClick={() => setActiveTab("jobs")}>Richieste di lavoro</TabButton>
         <TabButton active={activeTab === "applications"} onClick={() => setActiveTab("applications")}>Candidature</TabButton>
       </nav>
-      {(activeTab === "jobs" || activeTab === "applications") && <JobsSection view={activeTab} />}
+      <JobsSection
+        view={activeTab === "jobs" || activeTab === "applications" ? activeTab : null}
+        initialJobs={initialJobs}
+      />
 
       {(message || error) && (
         <div
