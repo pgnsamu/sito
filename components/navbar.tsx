@@ -17,10 +17,10 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const sections = ["Fashion", "Visualculture", "Jobs"];
+  const sections = ["Fashion", "Visual culture", "Jobs"];
 
   function isActiveSection(section: string) {
-    return pathname === `/${section.toLowerCase()}`;
+    return pathname === `/${section.toLowerCase().replace(/\s+/g, "")}`;
   }
 
   function handleSearchSubmit(e: React.SubmitEvent<HTMLFormElement>) {
@@ -91,7 +91,7 @@ export default function Navbar() {
               {sections.map((section) => (
                 <Link 
                   key={section}
-                  href={`/${section.toLowerCase()}`} 
+                  href={`/${section.toLowerCase().replace(/\s+/g, "")}`} 
                   className={`relative text-sm uppercase tracking-wide text-${primaryColor} transition-all duration-300 hover:opacity-70 ${
                     isActiveSection(section) ? "font-bold" : "font-medium"
                   }`}
@@ -151,7 +151,7 @@ export default function Navbar() {
           {sections.map((section) => (
             <Link
               key={section}
-              href={`/${section.toLowerCase()}`}
+              href={`/${section.toLowerCase().replace(/\s+/g, "")}`}
               onClick={() => setIsOpen(false)}
               className={`group relative w-fit text-4xl tracking-tight text-neutral-900 transition-all duration-300 hover:translate-x-2 md:text-5xl ${
                 isActiveSection(section) ? "font-bold" : "font-medium"
