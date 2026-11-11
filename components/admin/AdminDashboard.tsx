@@ -17,11 +17,14 @@ import {
   updateWork,
 } from "@/lib/api/admin";
 import Link from "next/link";
-import type { Application, Job } from "@/lib/api/jobs";
+import type { Application, ArtistJobRole, Job, JobRole, JobRoleAlias } from "@/lib/api/jobs";
 import JobsSection from "./JobsSection";
+import ArtistRoles from "./ArtistRoles";
+import ArtistRolePicker from "./ArtistRolePicker";
+import RolesSection, { RoleOptions } from "./RolesSection";
 import { createClient } from "@/lib/supabase/client";
 
-type Tab = "works" | "artists" | "genres" | "jobs" | "applications";
+type Tab = "works" | "artists" | "genres" | "jobs" | "applications" | "roles";
 
 type Props = {
   initialGenres: Genre[];
@@ -29,6 +32,10 @@ type Props = {
   initialWorks: Work[];
   initialJobs: Job[] | null;
   initialApplications: Application[] | null;
+  initialRoles: JobRole[];
+  initialAliases: JobRoleAlias[];
+  initialArtistRoles: ArtistJobRole[];
+  artistRolesUnavailable: boolean;
 };
 
 export default function AdminDashboard({
@@ -37,6 +44,10 @@ export default function AdminDashboard({
   initialWorks,
   initialJobs,
   initialApplications,
+  initialRoles,
+  initialAliases,
+  initialArtistRoles,
+  artistRolesUnavailable,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("works");
 
@@ -44,6 +55,9 @@ export default function AdminDashboard({
 
   const [genres, setGenres] = useState<Genre[]>(initialGenres);
   const [artists, setArtists] = useState<Artist[]>(initialArtists);
+  const [roles, setRoles] = useState(initialRoles);
+  const [aliases, setAliases] = useState(initialAliases);
+  const [artistRoles, setArtistRoles] = useState(initialArtistRoles);
   const [works, setWorks] = useState<Work[]>(initialWorks);
 
   const [message, setMessage] = useState("");
@@ -121,12 +135,21 @@ export default function AdminDashboard({
         </TabButton>
         <TabButton active={activeTab === "jobs"} onClick={() => setActiveTab("jobs")}>Richieste di lavoro</TabButton>
         <TabButton active={activeTab === "applications"} onClick={() => setActiveTab("applications")}>Candidature</TabButton>
+        <TabButton active={activeTab === "roles"} onClick={() => setActiveTab("roles")}>Ruoli</TabButton>
       </nav>
       <JobsSection
         view={activeTab === "jobs" || activeTab === "applications" ? activeTab : null}
         initialJobs={initialJobs}
         initialApplications={initialApplications}
+        roles={roles}
       />
+
+      {activeTab === "roles" && <RolesSection
+        roles={roles}
+        aliases={aliases}
+        onRole={role => setRoles(current => [...current, role].sort((a, b) => a.name.localeCompare(b.name)))}
+        onAlias={alias => setAliases(current => [...current, alias])}
+      />}
 
       {(message || error) && (
         <div
@@ -153,6 +176,14 @@ export default function AdminDashboard({
 
       {activeTab === "artists" && (
         <ArtistsSection
+          artistRolesUnavailable={artistRolesUnavailable}
+          onOpenRoles={() => setActiveTab("roles")}
+          roles={roles}
+          artistRoles={artistRoles}
+          onSaveRoles={(artistId, roleIds) => setArtistRoles(current => [
+            ...current.filter(link => link.artist_id !== artistId),
+            ...roleIds.map(roleId => ({ artist_id: artistId, role_id: roleId })),
+          ])}
           artists={artists}
           genres={genres}
           setArtists={setArtists}
@@ -386,17 +417,30 @@ function EditableGenreRow({
 
 function ArtistsSection({
   artists,
+  roles,
+  artistRoles,
+  artistRolesUnavailable,
+  onOpenRoles,
+  onSaveRoles,
   genres,
   setArtists,
   showMessage,
   showError,
 }: {
   artists: Artist[];
+  roles: JobRole[];
+  artistRoles: ArtistJobRole[];
+  artistRolesUnavailable: boolean;
+  onOpenRoles: () => void;
+  onSaveRoles: (artistId: number, roleIds: string[]) => void;
   genres: Genre[];
   setArtists: React.Dispatch<React.SetStateAction<Artist[]>>;
   showMessage: (text: string) => void;
   showError: (text: string) => void;
 }) {
+  const [creating, setCreating] = useState(false);
+  const [roleIds, setRoleIds] = useState<string[]>([]);
+  const [roleFilter, setRoleFilter] = useState("");
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -405,16 +449,22 @@ function ArtistsSection({
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    if (creating) return;
+    setCreating(true);
 
     try {
       const result = await createArtist({
         name: form.name,
         description: form.description,
         genre_id: form.genre_id ? Number(form.genre_id) : null,
+        role_ids: roleIds,
       });
 
       setArtists((prev) => [...prev, result.artist].sort((a, b) => a.name.localeCompare(b.name)));
 
+      onSaveRoles(result.artist.id, roleIds);
+      setRoleIds([]);
+      setRoleFilter("");
       setForm({
         name: "",
         description: "",
@@ -424,6 +474,8 @@ function ArtistsSection({
       showMessage("Artista creato.");
     } catch (err) {
       showError(err instanceof Error ? err.message : "Errore creazione artista.");
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -461,56 +513,82 @@ function ArtistsSection({
     <section>
       <SectionTitle kicker="People" title="Artists" />
 
-      <form onSubmit={handleCreate} className="mb-14 grid gap-6 lg:grid-cols-2">
-        <div className="lg:col-span-2">
-          <Field label="Artist name">
-            <input
-              className={inputClass()}
-              value={form.name}
-              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="Artist name"
-              required
+      <form onSubmit={handleCreate} className="mb-14">
+        <fieldset disabled={creating} className="grid gap-6 lg:grid-cols-2">
+          <div className="lg:col-span-2">
+            <Field label="Artist name">
+              <input
+                className={inputClass()}
+                value={form.name}
+                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Artist name"
+                required
+              />
+            </Field>
+          </div>
+
+          <Field label="Description">
+            <textarea
+              className={smallInputClass() + " min-h-28 resize-none"}
+              value={form.description}
+              onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+              placeholder="Short description"
             />
           </Field>
-        </div>
 
-        <Field label="Description">
-          <textarea
-            className={smallInputClass() + " min-h-28 resize-none"}
-            value={form.description}
-            onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-            placeholder="Short description"
-          />
-        </Field>
+          <Field label="Genre">
+            <select
+              className={selectClass()}
+              value={form.genre_id}
+              onChange={(e) => setForm((prev) => ({ ...prev, genre_id: e.target.value }))}
+            >
+              <option value="">No genre</option>
+              {genres.map((genre) => (
+                <option key={genre.id} value={genre.id}>
+                  {genre.name}
+                </option>
+              ))}
+            </select>
+          </Field>
 
-        <Field label="Genre">
-          <select
-            className={selectClass()}
-            value={form.genre_id}
-            onChange={(e) => setForm((prev) => ({ ...prev, genre_id: e.target.value }))}
-          >
-            <option value="">No genre</option>
-            {genres.map((genre) => (
-              <option key={genre.id} value={genre.id}>
-                {genre.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <div className="lg:col-span-2">
-          <ActionButton type="submit">Add artist</ActionButton>
-        </div>
+          <div className="lg:col-span-2">
+            <ArtistRolePicker
+              roles={roles}
+              selected={roleIds}
+              onChange={setRoleIds}
+              unavailable={artistRolesUnavailable}
+              onOpenRoles={onOpenRoles}
+            />
+            <div className="mt-6">
+              <ActionButton type="submit">{creating ? "Salvataggio…" : "Add artist"}</ActionButton>
+            </div>
+          </div>
+        </fieldset>
       </form>
 
-      <div className="space-y-5">
-        {artists.map((artist) => (
+      {!artistRolesUnavailable && roles.length > 0 && <Field label="Filtra artisti per ruolo">
+        <select className={selectClass()} value={roleFilter} onChange={event => setRoleFilter(event.target.value)}>
+          <RoleOptions roles={roles} empty="Tutti i ruoli" />
+        </select>
+      </Field>}
+      <div className="mt-5 space-y-5">
+        {artists.filter(artist => !roleFilter || artistRoles.some(
+          link => link.artist_id === artist.id && link.role_id === roleFilter
+        )).map((artist) => (
           <EditableArtistCard
             key={artist.id}
             artist={artist}
             genres={genres}
             onUpdate={handleUpdate}
             onDelete={handleDelete}
+            roleEditor={<ArtistRoles
+              unavailable={artistRolesUnavailable}
+              onOpenRoles={onOpenRoles}
+              artistId={artist.id}
+              roles={roles}
+              savedIds={artistRoles.filter(link => link.artist_id === artist.id).map(link => link.role_id)}
+              onSave={onSaveRoles}
+            />}
           />
         ))}
       </div>
@@ -523,6 +601,7 @@ function EditableArtistCard({
   genres,
   onUpdate,
   onDelete,
+  roleEditor,
 }: {
   artist: Artist;
   genres: Genre[];
@@ -533,6 +612,7 @@ function EditableArtistCard({
     genre_id: number | null;
   }) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
+  roleEditor: React.ReactNode;
 }) {
   const [name, setName] = useState(artist.name);
   const [description, setDescription] = useState(artist.description ?? "");
@@ -593,6 +673,7 @@ function EditableArtistCard({
           Delete
         </ActionButton>
       </div>
+      {roleEditor}
     </article>
   );
 }

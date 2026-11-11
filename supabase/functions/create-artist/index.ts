@@ -88,25 +88,31 @@ Deno.serve(async (req) => {
 
   const name = String(body.name ?? "").trim();
   const description = String(body.description ?? "").trim();
-  const genreId = Number(body.genre_id);
+  const genreId = body.genre_id == null ? null : Number(body.genre_id);
   const url_image = String(body.url_image ?? "").trim();
 
   if (!name) {
-    return jsonResponse(req, { error: "Genre name is required" }, 400);
+    return jsonResponse(req, { error: "Artist name is required" }, 400);
   }
 
-  /* forse non serve perché lo fa lato server questo controllo grazie ai controlli 
-  const { data, error } = await supabase
-  .from("genres")
-  .select("id")
-  .eq("id", genreId)
-  .single();
-  
-  if (error || !data) {
-    return jsonResponse(req, { error: "Invalid genre ID" }, 400);
+  const roleIds = body.role_ids ?? [];
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!Array.isArray(roleIds) || roleIds.some(id => typeof id !== "string" || !uuid.test(id))) {
+    return jsonResponse(req, { error: "Ruoli non validi." }, 400);
   }
-  */
 
+  if (roleIds.length > 0) {
+    const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data, error } = await db.rpc("create_artist_with_roles", {
+      p_name: name,
+      p_description: description,
+      p_genre_id: genreId,
+      p_url_image: url_image,
+      p_role_ids: roleIds,
+    });
+    if (error) return jsonResponse(req, { error: error.message }, 400);
+    return jsonResponse(req, { artist: data }, 201);
+  }
 
   const { data, error } = await supabase
     .from("artists")

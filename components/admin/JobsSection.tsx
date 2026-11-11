@@ -1,7 +1,8 @@
 "use client";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
-import { jobsRequest, type Job, type Application } from "@/lib/api/jobs";
+import { jobsRequest, type Job, type Application, type JobRole } from "@/lib/api/jobs";
+import { RoleOptions } from "./RolesSection";
 import { JobFields, buttonStyle, inputStyle } from "@/components/jobs/JobFields";
 
 import { createClient } from "@/lib/supabase/client";
@@ -10,10 +11,12 @@ export default function JobsSection({
   view,
   initialJobs,
   initialApplications,
+  roles,
 }: {
   view: "jobs" | "applications" | null;
   initialJobs: Job[] | null;
   initialApplications: Application[] | null;
+  roles: JobRole[];
 }) {
   const [jobs, setJobs] = useState<Job[] | null>(initialJobs);
   const [applications, setApplications] = useState<Application[] | null>(initialApplications);
@@ -22,6 +25,7 @@ export default function JobsSection({
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<Job | null>(null);
+  const [roleFilter, setRoleFilter] = useState("");
   const [filter, setFilter] = useState("");
   const [formVersion, setFormVersion] = useState(0);
   const needsLoad = view === "jobs" ? jobs === null : view === "applications" && applications === null;
@@ -56,6 +60,13 @@ export default function JobsSection({
     try {
       const { job } = await jobsRequest<{ job: Job }>({ ...values, action: "save", id: editing?.id }, true);
       setJobs(prev => editing ? (prev ?? []).map(item => item.id === job.id ? job : item) : [job, ...(prev ?? [])]);
+      if (job.role_id) {
+        setApplications(current => current?.map(application =>
+          application.job_id === job.id && !application.role_id
+            ? { ...application, role_id: job.role_id }
+            : application
+        ) ?? null);
+      }
       setEditing(null); setFormVersion(value => value + 1); setMessage("Richiesta salvata.");
     } catch (err) { setError(err instanceof Error ? err.message : "Salvataggio non riuscito."); }
     finally { setBusy(false); }
@@ -87,6 +98,10 @@ export default function JobsSection({
   }
   if (!view) return null;
 
+  const visibleApplications = applications?.filter(item =>
+    (!roleFilter || item.role_id === roleFilter) &&
+    (!filter || `${item.job_title} — ${item.company}` === filter)
+  ) ?? [];
   const statuses = { pending: "Da approvare", published: "Pubblicata", closed: "Chiusa" };
   return <section>
     <h2 className="mb-8 font-serif text-5xl tracking-[-0.04em] md:text-7xl">{view === 'jobs' ? 'Richieste di lavoro' : 'Candidature'}</h2>
@@ -100,10 +115,24 @@ export default function JobsSection({
     ) : needsLoad ? <p role="status">Caricamento…</p> : view === 'jobs' ? <>
       <form key={`${editing?.id ?? 'new'}-${formVersion}`} onSubmit={save} className="mb-12 border-b border-black/15 pb-10">
         <h3 className="mb-6 font-serif text-3xl">{editing ? 'Modifica richiesta' : 'Nuova richiesta'}</h3>
-        <fieldset disabled={busy} className="grid gap-6 md:grid-cols-2"><JobFields job={editing ?? undefined} admin /><div className="flex flex-wrap gap-3 md:col-span-2"><button className={buttonStyle}>{busy ? 'Salvataggio…' : 'Salva richiesta'}</button>{editing && <button type="button" className={buttonStyle} onClick={() => setEditing(null)}>Annulla</button>}</div></fieldset>
+        <fieldset disabled={busy} className="grid gap-6 md:grid-cols-2">
+          <JobFields job={editing ?? undefined} admin />
+          {roles.length > 0 && <label className="block text-xs uppercase tracking-[0.2em]">
+            Ruolo professionale
+            <select name="role_id" className={inputStyle} defaultValue={editing?.role_id ?? ""}>
+              <RoleOptions roles={roles} />
+            </select>
+          </label>}
+          <div className="flex flex-wrap gap-3 md:col-span-2">
+            <button className={buttonStyle}>{busy ? "Salvataggio…" : "Salva richiesta"}</button>
+            {editing && <button type="button" className={buttonStyle} onClick={() => setEditing(null)}>Annulla</button>}
+          </div>
+        </fieldset>
       </form>
       {!jobs?.length && <p>Nessuna richiesta di lavoro ricevuta.</p>}
-      <div className="divide-y divide-black/15">{jobs?.map(job => <article key={job.id} className="flex flex-wrap items-start justify-between gap-5 py-6"><div className="min-w-0"><p className="mb-2 text-xs uppercase tracking-[0.2em]">{statuses[job.status]} · {job.company}</p><h3 className="break-words font-serif text-3xl">{job.title}</h3><p className="mt-2 text-sm text-black/60">{job.location}</p><a className="break-all text-sm underline" href={`mailto:${job.email}`}>{job.email}</a></div><div className="flex flex-wrap items-center gap-3">
+      <div className="divide-y divide-black/15">{jobs?.map(job => <article key={job.id} className="flex flex-wrap items-start justify-between gap-5 py-6"><div className="min-w-0"><p className="mb-2 text-xs uppercase tracking-[0.2em]">{statuses[job.status]} · {job.company}</p><h3 className="break-words font-serif text-3xl">{job.title}</h3><p className="mt-2 text-sm text-black/60">{job.location}</p>{job.role_id && <p className="text-sm">
+            {roles.find(role => role.id === job.role_id)?.name}
+          </p>}<a className="break-all text-sm underline" href={`mailto:${job.email}`}>{job.email}</a></div><div className="flex flex-wrap items-center gap-3">
           <div className="relative">
             <select
               aria-label={`Stato di ${job.title}`}
@@ -121,8 +150,16 @@ export default function JobsSection({
           <button disabled={busy} className={buttonStyle} onClick={() => { setEditing(job); setMessage(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Modifica</button><button disabled={busy} className={buttonStyle} onClick={() => remove(job)}>Elimina</button></div></article>)}</div>
     </> : <>
       <label className="mb-8 block max-w-lg text-xs uppercase tracking-wider">Filtra per posizione<select className={inputStyle} value={filter} onChange={event => setFilter(event.target.value)}><option value="">Tutte le candidature</option>{Array.from(new Set((applications ?? []).map(item => `${item.job_title} — ${item.company}`))).map(label => <option key={label}>{label}</option>)}</select></label>
-      {!applications?.length && <p>Nessuna candidatura ricevuta.</p>}
-      <div className="divide-y divide-black/15">{applications?.filter(item => !filter || `${item.job_title} — ${item.company}` === filter).map(item => <article key={item.id} className="py-6"><p className="text-xs uppercase tracking-wider text-black/55">{item.job_title} — {item.company}</p><h3 className="mt-3 font-serif text-3xl">{item.name}</h3><a className="mt-2 inline-block break-all underline" href={`mailto:${item.email}`}>{item.email}</a><p className="mt-4 whitespace-pre-wrap text-sm">{item.message}</p><p className="mt-4 text-xs text-black/50">{new Date(item.created_at).toLocaleString('it-IT')}</p></article>)}</div>
+      {roles.length > 0 && <label className="mb-8 block max-w-lg text-xs uppercase tracking-wider">
+        Filtra candidature per ruolo
+        <select className={inputStyle} value={roleFilter} onChange={event => setRoleFilter(event.target.value)}>
+          <RoleOptions roles={roles} empty="Tutti i ruoli" />
+        </select>
+      </label>}
+      {visibleApplications.length === 0 && <p>
+        {applications?.length ? "Nessuna candidatura corrisponde ai filtri." : "Nessuna candidatura ricevuta."}
+      </p>}
+      <div className="divide-y divide-black/15">{visibleApplications.map(item => <article key={item.id} className="py-6"><p className="text-xs uppercase tracking-wider text-black/55">{item.job_title} — {item.company}</p><h3 className="mt-3 font-serif text-3xl">{item.name}</h3><a className="mt-2 inline-block break-all underline" href={`mailto:${item.email}`}>{item.email}</a><p className="mt-4 whitespace-pre-wrap text-sm">{item.message}</p><p className="mt-4 text-xs text-black/50">{new Date(item.created_at).toLocaleString('it-IT')}</p></article>)}</div>
     </>}
   </section>;
 }

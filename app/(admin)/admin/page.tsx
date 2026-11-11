@@ -33,12 +33,18 @@ export default async function AdminPage() {
     { data: works },
     { data: jobs },
     { data: applications },
+    { data: roles, error: rolesError },
+    { data: aliases },
+    { data: artistRoles, error: artistRolesError },
   ] = await Promise.all([
     supabase.from("genres").select("*").order("name", { ascending: true }),
     supabase.from("artists").select("*").order("name", { ascending: true }),
     supabase.from("works").select("*").order("created_at", { ascending: false }),
     supabase.from("job_requests").select("*").order("created_at", { ascending: false }),
     supabase.from("job_applications").select("*").order("created_at", { ascending: false }),
+    supabase.from("job_roles").select("*").order("name"),
+    supabase.from("job_role_aliases").select("role_id, name").order("name"),
+    supabase.from("artist_job_roles").select("artist_id, role_id"),
   ]);
 
   return (
@@ -48,6 +54,10 @@ export default async function AdminPage() {
       initialWorks={works ?? []}
       initialJobs={jobs}
       initialApplications={applications}
+      initialRoles={roles ?? []}
+      initialAliases={aliases ?? []}
+      initialArtistRoles={artistRoles ?? []}
+      artistRolesUnavailable={Boolean(rolesError || artistRolesError)}
     />
   );
 }

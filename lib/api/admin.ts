@@ -80,6 +80,7 @@ export function deleteGenre(id: number) {
 }
 
 export function createArtist(input: {
+  role_ids?: string[];
   name: string;
   description?: string;
   genre_id?: number | null;

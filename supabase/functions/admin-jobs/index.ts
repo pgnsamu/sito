@@ -49,6 +49,35 @@ Deno.serve(async (req) => {
     if (user.app_metadata?.role !== "admin") return reply({ error: "Accesso negato." }, 403);
     const body = await readBody(req);
     if (body instanceof Response) return body;
+    if (body.action === "create-role" || body.action === "add-role-alias") {
+      const name = field(body, "name");
+      if (body.action === "create-role") {
+        const { data, error } = await db.rpc("create_job_role", { p_name: name });
+        if (error?.code === "23505") return reply({ error: "Nome o alias già registrato." }, 409);
+        if (error) throw error;
+        return reply({ role: data }, 201);
+      }
+      if (typeof body.role_id !== "string" || !uuid.test(body.role_id)) {
+        return reply({ error: "Ruolo non valido." }, 400);
+      }
+      const { error } = await db.from("job_role_aliases").insert({ role_id: body.role_id, name });
+      if (error?.code === "23505") return reply({ error: "Nome o alias già registrato." }, 409);
+      if (error?.code === "23503") return reply({ error: "Ruolo non trovato." }, 404);
+      if (error) throw error;
+      return reply({ ok: true }, 201);
+    }
+    if (body.action === "set-artist-roles") {
+      const { artist_id, role_ids } = body;
+      if (typeof artist_id !== "number" || !Number.isSafeInteger(artist_id) || artist_id < 1 ||
+          !Array.isArray(role_ids) || role_ids.some(id => typeof id !== "string" || !uuid.test(id))) {
+        return reply({ error: "Artista o ruoli non validi." }, 400);
+      }
+      const { error } = await db.rpc("set_artist_job_roles", { p_artist_id: artist_id, p_role_ids: role_ids });
+      if (error?.code === "P0001") return reply({ error: "Artista non trovato." }, 404);
+      if (error?.code === "23503") return reply({ error: "Uno dei ruoli non esiste." }, 400);
+      if (error) throw error;
+      return reply({ ok: true });
+    }
     if (body.action === "list") {
       const [jobs, applications] = await Promise.all([
         db.from("job_requests").select("*").order("created_at", { ascending: false }),
@@ -71,11 +100,21 @@ Deno.serve(async (req) => {
       if ((id !== undefined || body.action === "set-status") && (typeof id !== "string" || !uuid.test(id))) {
         return reply({ error: "ID non valido." }, 400);
       }
-      const values = body.action === "set-status" ? { status } : { ...jobFields(body), status };
+      const roleId = body.action === "save" ? body.role_id : undefined;
+      if (roleId !== undefined && roleId !== null && roleId !== "" &&
+          (typeof roleId !== "string" || !uuid.test(roleId))) {
+        return reply({ error: "Ruolo non valido." }, 400);
+      }
+      const values = body.action === "set-status" ? { status } : {
+        ...jobFields(body),
+        status,
+        ...(roleId !== undefined ? { role_id: roleId || null } : {}),
+      };
       const query = id
         ? db.from("job_requests").update(values).eq("id", id)
         : db.from("job_requests").insert(values);
       const { data, error } = await query.select().maybeSingle();
+      if (error?.code === "23503") return reply({ error: "Ruolo non trovato." }, 400);
       if (error) throw error;
       return data ? reply({ job: data }) : reply({ error: "Richiesta non trovata." }, 404);
     }
