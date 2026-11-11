@@ -17,7 +17,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const sections = ["Art", "Photography", "Fashion", "Jobs"];
+  const sections = ["Fashion", "Visualculture", "Jobs"];
 
   function isActiveSection(section: string) {
     return pathname === `/${section.toLowerCase()}`;

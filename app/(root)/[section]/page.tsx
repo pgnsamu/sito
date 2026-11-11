@@ -8,26 +8,6 @@ import { createClient } from "@/lib/supabase/server";
 //TODO: evitare di caricare tutti gli artisti insieme ma magari caricarli man mano / prevedere una paginazione
 
 const sectionsData = {
-  art: {
-    title: "Art",
-    description: "Opere, artisti e collezioni d'arte.",
-    items: Array.from({ length: 40 }, (_, index) => ({
-      id: index + 1,
-      name: `Nome artista ${String(index + 1).padStart(2, "0")}`,
-      url_image: `/artists/artist-${index + 1}.jpg`,
-    }))
-  },
-
-  photography: {
-    title: "Photography",
-    description: "Scatti, serie fotografiche e progetti visuali.",
-    items: Array.from({ length: 40 }, (_, index) => ({
-      id: index + 1,
-      name: `Nome artista ${String(index + 1).padStart(2, "0")}`,
-      url_image: `/artists/artist-${index + 1}.jpg`,
-    }))
-  },
-
   fashion: {
     title: "Fashion",
     description: "Editoriali, designer e collezioni fashion.",
