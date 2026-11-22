@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Menu, X } from "lucide-react";
+import { ArrowRight, Search, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -10,6 +10,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const searchToggle = useRef<HTMLButtonElement>(null);
 
   const primaryColor: string = "black"; // Colore primario
   const secondaryColor: string = "white"; // Colore secondario
@@ -42,31 +43,51 @@ export default function Navbar() {
       <header className={`fixed left-0 top-0 z-50 w-full ${pathname.startsWith("/artists/") ? "bg-white text-black" : "bg-transparent"}`}>
         <nav className="relative flex h-20 items-center justify-between px-6 md:px-10">
           {/* SINISTRA - SEARCH */}
-          <div className="flex flex-1 justify-start">
-            <form
-              onSubmit={handleSearchSubmit}
-              className="flex items-center gap-3"
+          <div className="flex flex-1 items-center justify-start gap-2">
+            <button
+              ref={searchToggle}
+              type="button"
+              onClick={() => setIsSearchOpen((prev) => !prev)}
+              aria-label={isSearchOpen ? "Close search" : "Open search"}
+              aria-expanded={isSearchOpen}
+              aria-controls={isSearchOpen ? "navbar-search" : undefined}
+              className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center text-black transition-opacity hover:opacity-60"
             >
-              <button
-                type="button"
-                onClick={() => setIsSearchOpen((prev) => !prev)}
-                aria-label="Search"
-                className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-${primaryColor} transition hover:bg-white/10`}
-              >
-                <Search size={22} />
-              </button>
+              {isSearchOpen ? <X size={20} /> : <Search size={22} />}
+            </button>
 
-              <input
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Search..."
-                className={`min-h-10 flex-1 rounded-full border border-white/10 bg-white/10 px-5 text-${primaryColor} outline-none backdrop-blur-md placeholder:text-${primaryColor}/40 focus:border-white/30 ${
-                  isSearchOpen
-                    ? "w-44 opacity-100 md:w-64"
-                    : "pointer-events-none w-0 px-0 opacity-0"
-                }`}
-              />
-            </form>
+            {isSearchOpen && (
+              <form
+                id="navbar-search"
+                role="search"
+                onSubmit={handleSearchSubmit}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    setIsSearchOpen(false);
+                    searchToggle.current?.focus();
+                  }
+                }}
+                className="absolute inset-x-6 top-full z-10 flex items-center gap-2 bg-white px-2 text-black motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 md:inset-x-10 lg:static lg:w-56 lg:bg-transparent lg:px-0"
+              >
+                <input
+                  autoFocus
+                  type="search"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  aria-label="Search for an artist, work or theme"
+                  placeholder="Artist, work or theme"
+                  className="min-h-10 min-w-0 flex-1 bg-transparent text-base placeholder:text-neutral-500 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  aria-label="Submit search"
+                  className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center transition-opacity hover:opacity-60 lg:w-8"
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </form>
+            )}
           </div>
 
           {/* CENTRO - LOGO / NOME SITO */}
