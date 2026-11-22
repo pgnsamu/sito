@@ -210,7 +210,7 @@ export default function Navbar() {
                 height={20}
                 className="h-5 w-5"
               />
-              <span>@newguardstudio</span>
+              <span>newguardstudio</span>
             </a>
           </div>
         </div>
