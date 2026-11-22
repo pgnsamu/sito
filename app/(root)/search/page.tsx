@@ -16,7 +16,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
       {query ? (
         <p className="mt-4 text-neutral-500">
           Risultati per:{" "}
-          <span className="font-medium text-neutral-900">{query}</span>
+          <span className="font-light text-neutral-900">{query}</span>
         </p>
       ) : (
         <p className="mt-4 text-neutral-500">
@@ -29,7 +29,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
           <p className="text-sm uppercase tracking-wide text-neutral-400">
             Example
           </p>
-          <h2 className="mt-3 text-xl font-medium">
+          <h2 className="mt-3 text-xl font-semibold">
             Primo risultato
           </h2>
         </article>
@@ -38,7 +38,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
           <p className="text-sm uppercase tracking-wide text-neutral-400">
             Example
           </p>
-          <h2 className="mt-3 text-xl font-medium">
+          <h2 className="mt-3 text-xl font-semibold">
             Secondo risultato
           </h2>
         </article>
@@ -47,7 +47,7 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
           <p className="text-sm uppercase tracking-wide text-neutral-400">
             Example
           </p>
-          <h2 className="mt-3 text-xl font-medium">
+          <h2 className="mt-3 text-xl font-semibold">
             Terzo risultato
           </h2>
         </article>

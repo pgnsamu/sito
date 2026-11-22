@@ -28,7 +28,7 @@ const ArtistWorks = async ( {params}: {params: Promise<{id: string}>} ) => {
 
   return (
     <section className="min-h-screen bg-white px-1 pb-20 pt-32 text-black">
-      <h1 className="mb-16 px-5 text-center text-3xl font-light tracking-tight md:text-5xl">
+      <h1 className="mb-16 px-5 text-center text-3xl font-semibold tracking-tight md:text-5xl">
         {artistResult.data.name}
       </h1>
       {/* WORKS GRID */}

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { acumin } from "@/app/fonts";
 import Navbar from "@/components/navbar";
-import NavbarSimple from "@/components/navbarSimple";
 import "../globals.css";
 
 
@@ -19,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col" style={{ fontFamily: '"Arial Nova", Arial, sans-serif' }}>
+    <html lang="en" className={`${acumin.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">
         <header className="relative z-50 shrink-0">
           <Navbar />
         </header>

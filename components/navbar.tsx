@@ -93,7 +93,7 @@ export default function Navbar() {
                   key={section}
                   href={`/${section.toLowerCase().replace(/\s+/g, "")}`} 
                   className={`relative text-sm uppercase tracking-wide text-${primaryColor} transition-all duration-300 hover:opacity-70 ${
-                    isActiveSection(section) ? "font-bold" : "font-medium"
+                    isActiveSection(section) ? "font-semibold" : "font-light"
                   }`}
                   >
                   {section}
@@ -154,7 +154,7 @@ export default function Navbar() {
               href={`/${section.toLowerCase().replace(/\s+/g, "")}`}
               onClick={() => setIsOpen(false)}
               className={`group relative w-fit text-4xl tracking-tight text-neutral-900 transition-all duration-300 hover:translate-x-2 md:text-5xl ${
-                isActiveSection(section) ? "font-bold" : "font-medium"
+                isActiveSection(section) ? "font-semibold" : "font-light"
               }`}
             >
               {section}
@@ -171,7 +171,7 @@ export default function Navbar() {
           <Link
             href="/about"
             onClick={() => setIsOpen(false)}
-            className={`inline-block rounded-full border border-neutral-900 px-6 py-3 text-sm font-medium uppercase tracking-wide text-neutral-900 transition hover:bg-neutral-900 hover:text-${secondaryColor}`}
+            className={`inline-block rounded-full border border-neutral-900 px-6 py-3 text-sm font-light uppercase tracking-wide text-neutral-900 transition hover:bg-neutral-900 hover:text-${secondaryColor}`}
           >
             Work with us
           </Link>

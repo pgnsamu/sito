@@ -33,7 +33,7 @@ function ArtistCard({
         ) : null}
       </div>
 
-      <h2 className="mt-5 text-center text-2xl font-light transition-[text-shadow,letter-spacing] duration-300 ease-out group-hover:font-semibold group-hover:tracking-[-0.01em] group-hover:[text-shadow:0_0_0.35px_currentColor,0_0_0.35px_currentColor]">
+      <h2 className="mt-5 text-center text-2xl font-semibold transition-[text-shadow,letter-spacing] duration-300 ease-out group-hover:font-semibold group-hover:tracking-[-0.01em] group-hover:[text-shadow:0_0_0.35px_currentColor,0_0_0.35px_currentColor]">
         {artist.name}
       </h2>
     </article>
