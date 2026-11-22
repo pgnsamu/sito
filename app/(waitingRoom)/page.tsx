@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Grainient from "@/components/Grainient";
 
 //TODO: fare check serverside se il valore di launchdate è buono
@@ -210,7 +211,7 @@ export default function ComingSoonPage() {
           <CountdownBox value={timeLeft.seconds} label="Seconds" />
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-12 flex w-full max-w-md flex-col gap-3 sm:flex-row">
+        <form onSubmit={handleSubmit} aria-describedby="launch-privacy" className="mt-12 flex w-full max-w-md flex-col gap-3 sm:flex-row">
           <input
             type="email"
             inputMode="email"
@@ -231,8 +232,11 @@ export default function ComingSoonPage() {
           >
             {status === "loading" ? "Saving..." : "Notify me"}
           </button>
-          
         </form>
+        <p id="launch-privacy" className="mt-3 max-w-md text-sm text-white/80">
+          By selecting Notify me, you agree to receive the launch email. You can withdraw your consent at any time.
+          {" "}<Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>
+        </p>
         <p
           aria-live="polite"
           className={`mt-4 min-h-5 text-sm transition-opacity ${

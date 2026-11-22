@@ -1,14 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
+import { studioEmail } from "@/lib/studio";
 
 export default function AboutPage() {
 	// Nota importante: con mailto: non puoi allegare davvero file in automatico. 
 	// Il bottone + ora apre il file picker e inserisce il nome del file nel corpo della mail, 
 	// ma per allegati veri serve una API backend, ad esempio una route Next.js con Resend, Nodemailer, SendGrid o simili.
-	// TODO: cambiare mail
-  const recipientEmail = "your-email@example.com";
-
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [email, setEmail] = useState("");
   const [description, setDescription] = useState("");
@@ -30,7 +29,7 @@ export default function AboutPage() {
       .filter(Boolean)
       .join("\n");
 
-    const mailtoUrl = `mailto:${recipientEmail}?subject=${encodeURIComponent(
+    const mailtoUrl = `mailto:${studioEmail}?subject=${encodeURIComponent(
       subject,
     )}&body=${encodeURIComponent(body)}`;
 
@@ -51,7 +50,7 @@ export default function AboutPage() {
       </section>
 
       {/* WORK WITH US */}
-      <section className="bg-neutral-300 px-5 py-7 sm:px-8 md:min-h-[45vh]">
+      <section id="work-with-us" className="scroll-mt-24 bg-neutral-300 px-5 py-7 sm:px-8 md:min-h-[45vh]">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-7 md:grid-cols-[160px_minmax(320px,460px)_1fr] md:gap-8">
           <h2 className="font-serif text-sm font-semibold uppercase tracking-wide sm:text-base">
             WORK WITH US
@@ -104,6 +103,10 @@ export default function AboutPage() {
               <span className="absolute left-1/2 top-1/2 h-[2px] w-6 -translate-x-1/2 -translate-y-1/2 bg-black md:w-7" />
               <span className="absolute left-1/2 top-1/2 h-6 w-[2px] -translate-x-1/2 -translate-y-1/2 bg-black md:h-7" />
             </button>
+            <p className="text-sm text-neutral-700">
+              This form opens your email app. Read our{" "}
+              <Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>.
+            </p>
           </form>
 
           <div className="flex justify-end md:items-end">

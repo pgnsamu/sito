@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { jobsRequest, type PublicJob } from "@/lib/api/jobs";
 import { JobFields, inputStyle, buttonStyle } from "@/components/jobs/JobFields";
@@ -83,7 +84,10 @@ export default function JobsPage() {
             </>}
           </div>
           <div hidden aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
-          <p className="text-sm text-black/55">I dati inviati saranno consultabili dagli amministratori per gestire la richiesta e ricontattarti.</p>
+          <p className="text-sm text-black/70">
+            Gli amministratori usano i dati per gestire l’invio e ricontattarti.
+            {" "}Consulta la <Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>.
+          </p>
           <button className={buttonStyle} disabled={busy || (mode === 'apply' && (loading || !!loadError || !selected))}>{busy ? "Invio in corso…" : mode === 'apply' ? "Invia candidatura" : "Invia richiesta"}</button>
         </fieldset>
         {message && <p role="status" className="border-t border-black/15 pt-4">{message}</p>}

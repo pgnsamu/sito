@@ -8,12 +8,12 @@ export default function Page() {
   return (
     <PolicyPage title="Cookie Policy">
       <PolicySection title="Cookie e tecnologie analoghe">
-        <p>I cookie sono piccoli dati che un sito può memorizzare nel browser. Possono servire a mantenere una sessione o a proteggere il servizio. Le pagine pubbliche di New Guard Studio sono configurate senza cookie pubblicitari, pixel di profilazione o strumenti di analisi del traffico integrati nell’applicazione.</p>
+        <p>I cookie sono piccoli dati che un sito può memorizzare nel browser, ad esempio per mantenere una sessione o proteggere il servizio. L’applicazione pubblica di New Guard Studio non integra cookie pubblicitari, pixel di profilazione o strumenti di analisi del traffico.</p>
       </PolicySection>
 
       <PolicySection title="Cookie tecnici">
         <ul>
-          <li><strong>Supabase Auth · <code>sb-…-auth-token</code></strong>, eventualmente suddiviso in più cookie numerati. È usato per conservare la sessione degli utenti autorizzati che accedono all’area amministrativa. La durata massima configurata dal client è di 400 giorni dalla scrittura del cookie. La validità della sessione e dei token segue le impostazioni di autenticazione e può terminare prima.</li>
+          <li><strong>Sessione amministrativa.</strong> Il sito usa <code>sb-…-auth-token</code>, eventualmente suddiviso in più cookie numerati, per mantenere la sessione degli utenti autorizzati che accedono con Supabase Auth. La durata massima del cookie è di 400 giorni dalla scrittura. La sessione può terminare prima secondo le impostazioni di autenticazione o con il logout.</li>
           <li><strong>Servizi di infrastruttura.</strong> Se sui domini utilizzati sono attive protezioni di accesso o antiabuso, il browser può ricevere cookie tecnici dal relativo servizio. Le finalità e le durate delle funzioni opzionali sono descritte nella <a href="https://developers.cloudflare.com/fundamentals/reference/policies-compliances/cloudflare-cookies/">documentazione Cloudflare</a> e nella <a href="https://vercel.com/docs/deployment-protection">documentazione Vercel</a>.</li>
         </ul>
         <p>Per i cookie strettamente necessari a fornire un servizio richiesto dall’utente non è richiesto il consenso. Per maggiori informazioni consulta le <a href="https://www.garanteprivacy.it/faq/Cookie">FAQ del Garante sui cookie</a>.</p>

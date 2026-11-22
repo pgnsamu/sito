@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-
-export const studioEmail = "info.newguardstudio@gmail.com";
+import { studioEmail } from "@/lib/studio";
 
 export function StudioEmail() {
   return <a href={`mailto:${studioEmail}`}>{studioEmail}</a>;
