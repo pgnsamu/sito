@@ -27,7 +27,7 @@ export default function RootLayout({
         <main className="relative z-0 flex-1">
           {children}
         </main>
-        <SiteFooter legalOnly />
+        {/* <SiteFooter legalOnly /> */}
       </body>
     </html>
   );

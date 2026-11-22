@@ -233,10 +233,12 @@ export default function ComingSoonPage() {
             {status === "loading" ? "Saving..." : "Notify me"}
           </button>
         </form>
+        {/*
         <p id="launch-privacy" className="mt-3 max-w-md text-sm text-white/80">
           By selecting Notify me, you agree to receive the launch email. You can withdraw your consent at any time.
           {" "}<Link href="/privacy-policy" className="underline underline-offset-4">Privacy Policy</Link>
         </p>
+        */}
         <p
           aria-live="polite"
           className={`mt-4 min-h-5 text-sm transition-opacity ${
