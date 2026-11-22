@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { acumin } from "@/app/fonts";
 import Navbar from "@/components/navbar";
+import SiteFooter from "@/components/SiteFooter";
 import "../globals.css";
 
 
@@ -23,9 +24,10 @@ export default function RootLayout({
         <header className="relative z-50 shrink-0">
           <Navbar />
         </header>
-        <main className="relative z-0 flex-1">
+        <main className="relative z-0 flex-1 bg-white">
           {children}
         </main>
+        <SiteFooter />
       </body>
     </html>
   );
