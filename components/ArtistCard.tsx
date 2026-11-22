@@ -3,7 +3,7 @@ import Image from "next/image";
 type Artist = {
   id: number;
   name: string;
-  image: string;
+  image: string | null;
 }
 
 
@@ -21,12 +21,13 @@ function ArtistCard({
       }`}
     >
       <div className="h-[260px] w-full max-w-[220px] bg-neutral-300 transition-transform duration-500 ease-out group-hover:scale-[1.10]">
-        {artist.image ? (
+        {artist.image?.trim() ? (
           <Image
-            src={artist.image}
+            src={artist.image.trim()}
             alt={artist.name}
             width={220}
             height={260}
+            unoptimized
             className="h-full w-full object-cover"
           />
         ) : null}

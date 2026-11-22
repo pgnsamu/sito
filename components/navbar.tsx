@@ -39,7 +39,7 @@ export default function Navbar() {
   return (
     <>
       {/* NAVBAR */}
-      <header className="fixed left-0 top-0 z-50 w-full bg-transparent">
+      <header className={`fixed left-0 top-0 z-50 w-full ${pathname.startsWith("/artists/") ? "bg-white text-black" : "bg-transparent"}`}>
         <nav className="relative flex h-20 items-center justify-between px-6 md:px-10">
           {/* SINISTRA - SEARCH */}
           <div className="flex flex-1 justify-start">
