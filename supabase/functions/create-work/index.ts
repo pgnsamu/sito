@@ -81,10 +81,12 @@ Deno.serve(async (req) => {
     name?: string;
     production_date?: string | null;
     url_image?: string;
+    image_key?: string | null;
     description?: string;
     artist_id?: number;
     genre_id?: number;
     visible?: boolean;
+    featured?: boolean;
   };
 
   try {
@@ -100,6 +102,11 @@ Deno.serve(async (req) => {
   const artistId = Number(body.artist_id);
   const genreId = Number(body.genre_id);
   const visible = body.visible ?? true;
+  const featured = body.featured ?? false;
+  const image_key = body.image_key ?? null;
+  if ((image_key !== null && typeof image_key !== "string") || typeof visible !== "boolean" || typeof featured !== "boolean") {
+    return jsonResponse(req, { error: "Foto o stato non validi" }, 400);
+  }
 
   if (!name) {
     return jsonResponse(req, { error: "Work name is required" }, 400);
@@ -127,9 +134,11 @@ Deno.serve(async (req) => {
       name,
       production_date: productionDate,
       url_image: url_image,
+      image_key,
       description,
       artist_id: artistId,
       genre_id: genreId,
+      featured,
       visible: visible
     })
     .select(`
@@ -138,6 +147,7 @@ Deno.serve(async (req) => {
       name,
       production_date,
       url_image,
+      image_key,
       description,
       artist_id,
       genre_id,

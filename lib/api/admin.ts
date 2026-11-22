@@ -23,6 +23,7 @@ async function callAdminFunction<TResponse>(
       method,
       headers: {
         "Content-Type": "application/json",
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
         Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify(body),
@@ -48,6 +49,8 @@ export type Artist = {
   id: number;
   name: string;
   description: string | null;
+  url_image?: string | null;
+  image_key?: string | null;
   genre_id: number | null;
   created_at?: string;
 };
@@ -57,6 +60,7 @@ export type Work = {
   name: string;
   production_date: string | null;
   url_image: string;
+  image_key?: string | null;
   description: string | null;
   artist_id: number;
   genre_id: number;
@@ -81,6 +85,8 @@ export function deleteGenre(id: number) {
 
 export function createArtist(input: {
   role_ids?: string[];
+  url_image?: string;
+  image_key?: string | null;
   name: string;
   description?: string;
   genre_id?: number | null;
@@ -90,6 +96,8 @@ export function createArtist(input: {
 
 export function updateArtist(input: {
   id: number;
+  url_image?: string;
+  image_key?: string | null;
   name?: string;
   description?: string;
   genre_id?: number | null;
@@ -109,6 +117,7 @@ export function createWork(input: {
   name: string;
   production_date?: string | null;
   url_image: string;
+  image_key?: string | null;
   description?: string;
   artist_id: number;
   genre_id: number;
@@ -123,6 +132,7 @@ export function updateWork(input: {
   name?: string;
   production_date?: string | null;
   url_image?: string;
+  image_key?: string | null;
   description?: string;
   artist_id?: number;
   genre_id?: number;

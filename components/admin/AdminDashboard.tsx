@@ -17,6 +17,8 @@ import {
   updateWork,
 } from "@/lib/api/admin";
 import Link from "next/link";
+import PhotoField from "./PhotoField";
+import { cleanupPhotos, PhotoValue, retryPhotoCleanup } from "@/lib/api/photos";
 import type { Application, ArtistJobRole, Job, JobRole, JobRoleAlias } from "@/lib/api/jobs";
 import JobsSection from "./JobsSection";
 import ArtistRoles from "./ArtistRoles";
@@ -60,6 +62,7 @@ export default function AdminDashboard({
   const [artistRoles, setArtistRoles] = useState(initialArtistRoles);
   const [works, setWorks] = useState<Work[]>(initialWorks);
 
+  const [cleaningPhotos, setCleaningPhotos] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -72,6 +75,18 @@ export default function AdminDashboard({
   function showError(text: string) {
     setMessage("");
     setError(text);
+  }
+
+  async function handlePhotoCleanup() {
+    if (cleaningPhotos) return;
+    setCleaningPhotos(true);
+    try {
+      const result = await cleanupPhotos();
+      if (result.remaining) showError("Pulizia parziale: restano file in coda. Premi di nuovo per continuare.");
+      else showMessage("Pulizia eseguita. Le foto associate agli artisti e alle opere sono conservate.");
+    } catch (err) {
+      showError(err instanceof Error ? err.message : "Pulizia foto non riuscita.");
+    } finally { setCleaningPhotos(false); }
   }
 
   async function handleSignOut() {
@@ -103,7 +118,11 @@ export default function AdminDashboard({
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <button type="button" disabled={cleaningPhotos} onClick={handlePhotoCleanup}
+            className="rounded-full border border-black/35 px-6 py-3 text-xs uppercase tracking-[0.25em] disabled:opacity-50">
+            {cleaningPhotos ? "Pulizia…" : "Pulisci foto inutilizzate"}
+          </button>
           <button
             type="button"
             onClick={handleSignOut}
@@ -439,6 +458,8 @@ function ArtistsSection({
   showError: (text: string) => void;
 }) {
   const [creating, setCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [photo, setPhoto] = useState<PhotoValue>({ url_image: "", image_key: null });
   const [roleIds, setRoleIds] = useState<string[]>([]);
   const [roleFilter, setRoleFilter] = useState("");
   const [form, setForm] = useState({
@@ -449,11 +470,12 @@ function ArtistsSection({
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    if (creating) return;
+    if (creating || uploading) return;
     setCreating(true);
 
     try {
       const result = await createArtist({
+        ...photo,
         name: form.name,
         description: form.description,
         genre_id: form.genre_id ? Number(form.genre_id) : null,
@@ -463,6 +485,7 @@ function ArtistsSection({
       setArtists((prev) => [...prev, result.artist].sort((a, b) => a.name.localeCompare(b.name)));
 
       onSaveRoles(result.artist.id, roleIds);
+      setPhoto({ url_image: "", image_key: null });
       setRoleIds([]);
       setRoleFilter("");
       setForm({
@@ -471,6 +494,7 @@ function ArtistsSection({
         genre_id: "",
       });
 
+      retryPhotoCleanup();
       showMessage("Artista creato.");
     } catch (err) {
       showError(err instanceof Error ? err.message : "Errore creazione artista.");
@@ -484,12 +508,15 @@ function ArtistsSection({
     name: string;
     description: string;
     genre_id: number | null;
+    url_image: string;
+    image_key: string | null;
   }) {
     try {
       const result = await updateArtist(input);
       setArtists((prev) =>
         prev.map((artist) => (artist.id === input.id ? result.artist : artist))
       );
+      retryPhotoCleanup();
       showMessage("Artista aggiornato.");
     } catch (err) {
       showError(err instanceof Error ? err.message : "Errore aggiornamento artista.");
@@ -503,6 +530,7 @@ function ArtistsSection({
     try {
       await deleteArtist(id);
       setArtists((prev) => prev.filter((artist) => artist.id !== id));
+      retryPhotoCleanup();
       showMessage("Artista eliminato.");
     } catch (err) {
       showError(err instanceof Error ? err.message : "Errore eliminazione artista.");
@@ -552,6 +580,9 @@ function ArtistsSection({
           </Field>
 
           <div className="lg:col-span-2">
+            <PhotoField value={photo} onChange={setPhoto} scope="artists" onBusyChange={setUploading} />
+          </div>
+          <div className="lg:col-span-2">
             <ArtistRolePicker
               roles={roles}
               selected={roleIds}
@@ -560,7 +591,7 @@ function ArtistsSection({
               onOpenRoles={onOpenRoles}
             />
             <div className="mt-6">
-              <ActionButton type="submit">{creating ? "Salvataggio…" : "Add artist"}</ActionButton>
+              <button type="submit" disabled={creating || uploading} className="rounded-full border border-black px-5 py-2 text-xs uppercase tracking-[0.22em] disabled:opacity-50">{creating ? "Salvataggio…" : uploading ? "Caricamento foto…" : "Add artist"}</button>
             </div>
           </div>
         </fieldset>
@@ -610,17 +641,22 @@ function EditableArtistCard({
     name: string;
     description: string;
     genre_id: number | null;
+    url_image: string;
+    image_key: string | null;
   }) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
   roleEditor: React.ReactNode;
 }) {
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [photo, setPhoto] = useState<PhotoValue>({ url_image: artist.url_image ?? "", image_key: artist.image_key ?? null });
   const [name, setName] = useState(artist.name);
   const [description, setDescription] = useState(artist.description ?? "");
   const [genreId, setGenreId] = useState(artist.genre_id ? String(artist.genre_id) : "");
 
   return (
     <article className="border border-black/10 bg-white/35 p-5 md:p-7">
-      <div className="grid gap-5 lg:grid-cols-2">
+      <fieldset disabled={saving} className="grid gap-5 lg:grid-cols-2">
         <Field label="Name">
           <input
             className="w-full bg-transparent font-serif text-4xl outline-none"
@@ -653,18 +689,28 @@ function EditableArtistCard({
             />
           </Field>
         </div>
-      </div>
+        <div className="lg:col-span-2">
+          <PhotoField value={photo} onChange={setPhoto} scope="artists" onBusyChange={setUploading} />
+        </div>
+      </fieldset>
 
-      <div className="mt-5 flex gap-2">
+      <fieldset disabled={uploading || saving} className="mt-5 flex gap-2">
         <ActionButton
-          onClick={() =>
-            onUpdate({
-              id: artist.id,
-              name,
-              description,
-              genre_id: genreId ? Number(genreId) : null,
-            })
-          }
+          onClick={async () => {
+            if (saving || uploading) return;
+            setSaving(true);
+            try {
+              await onUpdate({
+                ...photo,
+                id: artist.id,
+                name,
+                description,
+                genre_id: genreId ? Number(genreId) : null,
+              });
+            } finally {
+              setSaving(false);
+            }
+          }}
         >
           Update
         </ActionButton>
@@ -672,7 +718,7 @@ function EditableArtistCard({
         <ActionButton danger onClick={() => onDelete(artist.id)}>
           Delete
         </ActionButton>
-      </div>
+      </fieldset>
       {roleEditor}
     </article>
   );
@@ -695,10 +741,12 @@ function WorksSection({
   showMessage: (text: string) => void;
   showError: (text: string) => void;
 }) {
+  const [creating, setCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [photo, setPhoto] = useState<PhotoValue>({ url_image: "", image_key: null });
   const [form, setForm] = useState({
     name: "",
     production_date: "",
-    url: "",
     description: "",
     artist_id: "",
     genre_id: "",
@@ -710,38 +758,27 @@ function WorksSection({
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    if (creating || uploading) return;
+    setCreating(true);
 
     try {
-      const supabase = createClient();
-
-      const { data, error } = await supabase.functions.invoke("create-work-with-image", {
-        body: {
-          name: form.name,
-          production_date: form.production_date || null,
-          description: form.description,
-          artist_id: Number(form.artist_id),
-          genre_id: Number(form.genre_id),
-          featured: form.featured,
-          visible: form.visible,
-          image: {
-            url_image: form.url,
-            used_in: null,
-          },
-        },
+      const result = await createWork({
+        ...photo,
+        name: form.name,
+        production_date: form.production_date || null,
+        description: form.description,
+        artist_id: Number(form.artist_id),
+        genre_id: Number(form.genre_id),
+        featured: form.featured,
+        visible: form.visible,
       });
-
-      if (error) {
-        throw error;
-      }
-
-      const result = data as { work: Work };
+      setPhoto({ url_image: "", image_key: null });
 
       setWorks((prev) => [result.work, ...prev]);
 
       setForm({
         name: "",
         production_date: "",
-        url: "",
         description: "",
         artist_id: "",
         genre_id: "",
@@ -749,9 +786,12 @@ function WorksSection({
         visible: false,
       });
 
+      retryPhotoCleanup();
       showMessage("Opera creata.");
     } catch (err) {
       showError(err instanceof Error ? err.message : "Errore creazione opera.");
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -759,7 +799,8 @@ function WorksSection({
     id: number;
     name: string;
     production_date: string | null;
-    url: string;
+    url_image: string;
+    image_key: string | null;
     description: string;
     artist_id: number;
     genre_id: number;
@@ -773,6 +814,7 @@ function WorksSection({
         visible: input.visible ?? undefined,
       });
       setWorks((prev) => prev.map((work) => (work.id === input.id ? result.work : work)));
+      retryPhotoCleanup();
       showMessage("Opera aggiornata.");
     } catch (err) {
       showError(err instanceof Error ? err.message : "Errore aggiornamento opera.");
@@ -786,6 +828,7 @@ function WorksSection({
     try {
       await deleteWork(id);
       setWorks((prev) => prev.filter((work) => work.id !== id));
+      retryPhotoCleanup();
       showMessage("Opera eliminata.");
     } catch (err) {
       showError(err instanceof Error ? err.message : "Errore eliminazione opera.");
@@ -802,102 +845,96 @@ function WorksSection({
         </div>
       )}
 
-      <form onSubmit={handleCreate} className="mb-14 grid gap-6 lg:grid-cols-2">
-        <div className="lg:col-span-2">
-          <Field label="Work title">
+      <form onSubmit={handleCreate} className="mb-14">
+        <fieldset disabled={creating} className="grid gap-6 lg:grid-cols-2">
+          <div className="lg:col-span-2">
+            <Field label="Work title">
+              <input
+                className={inputClass()}
+                value={form.name}
+                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Work title"
+                required
+              />
+            </Field>
+          </div>
+
+          <PhotoField value={photo} onChange={setPhoto} scope="works" onBusyChange={setUploading} required />
+
+          <Field label="Production date">
             <input
-              className={inputClass()}
-              value={form.name}
-              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-              placeholder="Work title"
-              required
-            />
-          </Field>
-        </div>
-
-        <Field label="Image URL">
-          <input
-            className={smallInputClass()}
-            value={form.url}
-            onChange={(e) => setForm((prev) => ({ ...prev, url: e.target.value }))}
-            placeholder="https://..."
-            required
-          />
-        </Field>
-
-        <Field label="Production date">
-          <input
-            className={smallInputClass()}
-            type="date"
-            value={form.production_date}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, production_date: e.target.value }))
-            }
-          />
-        </Field>
-
-        <Field label="Artist">
-          <select
-            className={selectClass()}
-            value={form.artist_id}
-            onChange={(e) => setForm((prev) => ({ ...prev, artist_id: e.target.value }))}
-            required
-          >
-            <option value="">Select artist</option>
-            {artists.map((artist) => (
-              <option key={artist.id} value={artist.id}>
-                {artist.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="Genre">
-          <select
-            className={selectClass()}
-            value={form.genre_id}
-            onChange={(e) => setForm((prev) => ({ ...prev, genre_id: e.target.value }))}
-            required
-          >
-            <option value="">Select genre</option>
-            {genres.map((genre) => (
-              <option key={genre.id} value={genre.id}>
-                {genre.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-
-        <div className="lg:col-span-2">
-          <Field label="Description">
-            <textarea
-              className={smallInputClass() + " min-h-28 resize-none"}
-              value={form.description}
+              className={smallInputClass()}
+              type="date"
+              value={form.production_date}
               onChange={(e) =>
-                setForm((prev) => ({ ...prev, description: e.target.value }))
+                setForm((prev) => ({ ...prev, production_date: e.target.value }))
               }
-              placeholder="Short description"
             />
           </Field>
-        </div>
 
-        <div className="lg:col-span-2 grid gap-4 md:grid-cols-2">
-          <BooleanStatusControl
-            label="Featured"
-            value={form.featured}
-            onChange={(value) => setForm((prev) => ({ ...prev, featured: value ?? false }))}
-          />
+          <Field label="Artist">
+            <select
+              className={selectClass()}
+              value={form.artist_id}
+              onChange={(e) => setForm((prev) => ({ ...prev, artist_id: e.target.value }))}
+              required
+            >
+              <option value="">Select artist</option>
+              {artists.map((artist) => (
+                <option key={artist.id} value={artist.id}>
+                  {artist.name}
+                </option>
+              ))}
+            </select>
+          </Field>
 
-          <BooleanStatusControl
-            label="Visible"
-            value={form.visible}
-            onChange={(value) => setForm((prev) => ({ ...prev, visible: value ?? false }))}
-          />
-        </div>
+          <Field label="Genre">
+            <select
+              className={selectClass()}
+              value={form.genre_id}
+              onChange={(e) => setForm((prev) => ({ ...prev, genre_id: e.target.value }))}
+              required
+            >
+              <option value="">Select genre</option>
+              {genres.map((genre) => (
+                <option key={genre.id} value={genre.id}>
+                  {genre.name}
+                </option>
+              ))}
+            </select>
+          </Field>
 
-        <div className="lg:col-span-2">
-          <ActionButton type="submit">Add work</ActionButton>
-        </div>
+          <div className="lg:col-span-2">
+            <Field label="Description">
+              <textarea
+                className={smallInputClass() + " min-h-28 resize-none"}
+                value={form.description}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, description: e.target.value }))
+                }
+                placeholder="Short description"
+              />
+            </Field>
+          </div>
+
+          <div className="lg:col-span-2 grid gap-4 md:grid-cols-2">
+            <BooleanStatusControl
+              label="Featured"
+              value={form.featured}
+              onChange={(value) => setForm((prev) => ({ ...prev, featured: value ?? false }))}
+            />
+
+            <BooleanStatusControl
+              label="Visible"
+              value={form.visible}
+              onChange={(value) => setForm((prev) => ({ ...prev, visible: value ?? false }))}
+            />
+          </div>
+
+          <div className="lg:col-span-2">
+            <button type="submit" disabled={!canCreateWork || creating || uploading} className="rounded-full border border-black px-5 py-2 text-xs uppercase tracking-[0.22em] disabled:opacity-50">{creating ? "Salvataggio…" : uploading ? "Caricamento foto…" : "Add work"}</button>
+          </div>
+        </fieldset>
       </form>
 
       <div className="space-y-5">
@@ -930,7 +967,8 @@ function EditableWorkCard({
     id: number;
     name: string;
     production_date: string | null;
-    url: string;
+    url_image: string;
+    image_key: string | null;
     description: string;
     artist_id: number;
     genre_id: number;
@@ -944,7 +982,9 @@ function EditableWorkCard({
     (work as Work & { images?: { url_image?: string | null } | null }).images?.url_image ??
     (work as Work & { url_image?: string | null }).url_image ??
     "";
-  const [url, setUrl] = useState(imageUrl);
+  const [photo, setPhoto] = useState<PhotoValue>({ url_image: imageUrl, image_key: work.image_key ?? null });
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [description, setDescription] = useState(work.description ?? "");
   const [productionDate, setProductionDate] = useState(work.production_date ?? "");
   const [artistId, setArtistId] = useState(String(work.artist_id));
@@ -968,13 +1008,13 @@ function EditableWorkCard({
   return (
     <article className="grid gap-6 border border-black/10 bg-white/35 p-5 md:grid-cols-[160px_1fr] md:p-7">
       <div className="aspect-[3/4] overflow-hidden bg-black/5">
-        {url ? (
+        {photo.url_image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={name} className="h-full w-full object-cover" />
+          <img src={photo.url_image} alt={name} className="h-full w-full object-cover" />
         ) : null}
       </div>
 
-      <div>
+      <fieldset disabled={saving}>
         <div className="mb-6">
           <p className="mb-2 text-xs uppercase tracking-[0.28em] text-black/40">
             {selectedArtistName}
@@ -988,13 +1028,7 @@ function EditableWorkCard({
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Field label="Image URL">
-            <input
-              className={smallInputClass()}
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-          </Field>
+          <PhotoField value={photo} onChange={setPhoto} scope="works" onBusyChange={setUploading} required />
 
           <Field label="Production date">
             <input
@@ -1057,21 +1091,27 @@ function EditableWorkCard({
           </div>
         </div>
 
-        <div className="mt-5 flex gap-2">
+        <fieldset disabled={uploading || saving} className="mt-5 flex gap-2">
           <ActionButton
-            onClick={() =>
-              onUpdate({
-                id: work.id,
-                name,
-                production_date: productionDate || null,
-                url,
-                description,
-                artist_id: Number(artistId),
-                genre_id: Number(genreId),
-                featured,
-                visible,
-              })
-            }
+            onClick={async () => {
+              if (saving || uploading || !photo.url_image.trim()) return;
+              setSaving(true);
+              try {
+                await onUpdate({
+                  id: work.id,
+                  name,
+                  production_date: productionDate || null,
+                  ...photo,
+                  description,
+                  artist_id: Number(artistId),
+                  genre_id: Number(genreId),
+                  featured,
+                  visible,
+                });
+              } finally {
+                setSaving(false);
+              }
+            }}
           >
             Update
           </ActionButton>
@@ -1079,8 +1119,8 @@ function EditableWorkCard({
           <ActionButton danger onClick={() => onDelete(work.id)}>
             Delete
           </ActionButton>
-        </div>
-      </div>
+        </fieldset>
+      </fieldset>
     </article>
   );
 }

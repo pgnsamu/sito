@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sito-foto",
+  "main": "index.mjs",
+  "compatibility_date": "2026-11-22",
+  "workers_dev": true,
+  "r2_buckets": [
+    {
+      "binding": "PHOTOS",
+      "bucket_name": "SOSTITUISCI_CON_IL_TUO_BUCKET"
+    }
+  ]
+}

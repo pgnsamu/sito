@@ -75,7 +75,7 @@ openai_api_key = "env(OPENAI_API_KEY)"
 
 # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
 # are monitored, and you can view the emails that would have been sent from the web interface.
-[inbucket]
+[local_smtp]
 enabled = true
 # Port to use for the email testing server web interface.
 port = 54324
@@ -316,7 +316,8 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.create-artist]
 enabled = true
-verify_jwt = true
+# The handler validates the access token with Auth and checks the admin role.
+verify_jwt = false
 import_map = "./functions/create-artist/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -338,7 +339,8 @@ entrypoint = "./functions/create-genre/index.ts"
 
 [functions.create-work]
 enabled = true
-verify_jwt = true
+# The handler validates the access token with Auth and checks the admin role.
+verify_jwt = false
 import_map = "./functions/create-work/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -360,7 +362,8 @@ entrypoint = "./functions/update-genre/index.ts"
 
 [functions.update-artist]
 enabled = true
-verify_jwt = true
+# The handler validates the access token with Auth and checks the admin role.
+verify_jwt = false
 import_map = "./functions/update-artist/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -371,7 +374,8 @@ entrypoint = "./functions/update-artist/index.ts"
 
 [functions.update-work]
 enabled = true
-verify_jwt = true
+# The handler validates the access token with Auth and checks the admin role.
+verify_jwt = false
 import_map = "./functions/update-work/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -393,7 +397,8 @@ entrypoint = "./functions/delete-genre/index.ts"
 
 [functions.delete-work]
 enabled = true
-verify_jwt = true
+# The handler validates the access token with Auth and checks the admin role.
+verify_jwt = false
 import_map = "./functions/delete-work/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -404,7 +409,8 @@ entrypoint = "./functions/delete-work/index.ts"
 
 [functions.delete-artist]
 enabled = true
-verify_jwt = true
+# The handler validates the access token with Auth and checks the admin role.
+verify_jwt = false
 import_map = "./functions/delete-artist/deno.json"
 # Uncomment to specify a custom file path to the entrypoint.
 # Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
@@ -423,3 +429,9 @@ enabled = true
 # The handler validates the access token with Auth and checks the admin role.
 verify_jwt = false
 entrypoint = "./functions/admin-jobs/index.ts"
+
+[functions.admin-photos]
+enabled = true
+# The function validates the access token with Auth and checks app_metadata.role.
+verify_jwt = false
+entrypoint = "./functions/admin-photos/index.ts"

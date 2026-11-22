@@ -89,6 +89,8 @@ Deno.serve(async (req) => {
   const name = String(body.name ?? "").trim();
   const description = String(body.description ?? "").trim();
   const genreId = body.genre_id == null ? null : Number(body.genre_id);
+  const image_key = body.image_key ?? null;
+  if (image_key !== null && typeof image_key !== "string") return jsonResponse(req, { error: "Foto non valida" }, 400);
   const url_image = String(body.url_image ?? "").trim();
 
   if (!name) {
@@ -108,6 +110,7 @@ Deno.serve(async (req) => {
       p_description: description,
       p_genre_id: genreId,
       p_url_image: url_image,
+      p_image_key: image_key,
       p_role_ids: roleIds,
     });
     if (error) return jsonResponse(req, { error: error.message }, 400);
@@ -121,6 +124,7 @@ Deno.serve(async (req) => {
       description,
       genre_id: genreId,
       url_image,
+      image_key,
     })
     .select()
     .single();

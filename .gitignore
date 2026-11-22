@@ -42,3 +42,7 @@ next-env.d.ts
 
 .vscode/
 .dist
+# Non-secret configuration templates
+!.env.example
+!supabase/.env.r2.example
+/workers/**/.wrangler/

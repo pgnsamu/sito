@@ -103,10 +103,12 @@ Deno.serve(async (req) => {
     name?: string;
     production_date?: string | null;
     url_image?: string;
+    image_key?: string | null;
     description?: string;
     artist_id?: number;
     genre_id?: number;
     visible?: boolean;
+    featured?: boolean;
   };
 
   try {
@@ -125,10 +127,12 @@ Deno.serve(async (req) => {
     name?: string;
     production_date?: string | null;
     url_image?: string;
+    image_key?: string | null;
     description?: string;
     artist_id?: number;
     genre_id?: number;
     visible?: boolean;
+    featured?: boolean;
   } = {};
 
   if ("name" in body) {
@@ -189,14 +193,21 @@ Deno.serve(async (req) => {
     updates.genre_id = genreId;
   }
 
-  if ("visible" in body) {
-    const visible = Boolean(body.visible);
-
-    if (typeof body.visible !== "boolean" && body.visible !== "true" && body.visible !== "false") {
-      return jsonResponse(req, { error: "Visible must be a boolean value" }, 400);
+  for (const field of ["visible", "featured"] as const) {
+    if (field in body) {
+      if (typeof body[field] !== "boolean") return jsonResponse(req, { error: `${field} must be a boolean` }, 400);
+      updates[field] = body[field];
     }
-    
-    updates.visible = Boolean(body.visible);
+  }
+
+  if ("image_key" in body) {
+    if (body.image_key !== null && typeof body.image_key !== "string") {
+      return jsonResponse(req, { error: "Foto non valida" }, 400);
+    }
+    updates.image_key = body.image_key;
+  } else if ("url_image" in body) {
+    // Changing to an external URL must detach any previously managed photo.
+    updates.image_key = null;
   }
 
   if (Object.keys(updates).length === 0) {
@@ -213,6 +224,7 @@ Deno.serve(async (req) => {
       name,
       production_date,
       url_image,
+      image_key,
       description,
       artist_id,
       genre_id,

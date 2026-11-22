@@ -104,6 +104,7 @@ Deno.serve(async (req) => {
     description?: string;
     genre_id?: number | null;
     url_image?: string;
+    image_key?: string | null;
   };
 
   try {
@@ -123,6 +124,7 @@ Deno.serve(async (req) => {
     description?: string;
     genre_id?: number | null;
     url_image?: string;
+    image_key?: string | null;
   } = {};
 
   if ("name" in body) {
@@ -157,6 +159,16 @@ Deno.serve(async (req) => {
     updates.url_image = String(body.url_image ?? "").trim();
   }
 
+  if ("image_key" in body) {
+    if (body.image_key !== null && typeof body.image_key !== "string") {
+      return jsonResponse(req, { error: "Foto non valida" }, 400);
+    }
+    updates.image_key = body.image_key;
+  } else if ("url_image" in body) {
+    // Changing to an external URL must detach any previously managed photo.
+    updates.image_key = null;
+  }
+
   if (Object.keys(updates).length === 0) {
     return jsonResponse(req, { error: "No fields to update" }, 400);
   }
@@ -175,7 +187,8 @@ Deno.serve(async (req) => {
         id,
         name
       ),
-      url_image
+      url_image,
+      image_key
     `)
     .single();
 
