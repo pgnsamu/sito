@@ -184,7 +184,7 @@ export default function Navbar() {
 
           <div className="flex flex-col gap-2 text-sm text-neutral-700">
             <a
-              href="mailto:info@nomesito.com"
+              href="mailto:info.newguardstudio@gmail.com"
               className="transition hover:text-black"
             >
               <Image
@@ -194,10 +194,10 @@ export default function Navbar() {
                 height={20}
                 className="mr-2 inline h-5 w-5"
               />
-              <span>info@nomesito.com</span>
+              <span>info.newguardstudio@gmail.com</span>
             </a>
             <a
-              href="https://instagram.com"
+              href="https://www.instagram.com/newguardstudio"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
@@ -210,7 +210,7 @@ export default function Navbar() {
                 height={20}
                 className="h-5 w-5"
               />
-              <span>instagram.com/nomesito</span>
+              <span>https://www.instagram.com/newguardstudio</span>
             </a>
           </div>
         </div>
