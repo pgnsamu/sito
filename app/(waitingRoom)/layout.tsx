@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { acumin } from "@/app/fonts";
+import Navbar from "@/components/navbar";
 import NavbarSimple from "@/components/navbarSimple";
 import "../globals.css";
 
@@ -7,9 +7,6 @@ import "../globals.css";
 export const metadata: Metadata = {
   title: "NEW GUARD STUDIO",
   description: "Creative platform",
-  icons: {
-    icon: "pio.png",
-  },
 };
 
 export default function RootLayout({
@@ -18,8 +15,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${acumin.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+    <html lang="en" className="h-full antialiased">
+      <head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
+      </head>
+      <body className="min-h-full flex flex-col" style={{ 
+          fontFamily: '"Arial Nova", Arial, sans-serif', 
+          margin: 0,
+          padding: 0,
+          height: "100vh",
+        }}>
         <header className="relative z-50 shrink-0">
           <NavbarSimple />
         </header>

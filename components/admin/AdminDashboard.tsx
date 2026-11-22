@@ -21,12 +21,13 @@ import PhotoField from "./PhotoField";
 import { cleanupPhotos, PhotoValue, retryPhotoCleanup } from "@/lib/api/photos";
 import type { Application, ArtistJobRole, Job, JobRole, JobRoleAlias } from "@/lib/api/jobs";
 import JobsSection from "./JobsSection";
+import NewsletterSection from "./NewsletterSection";
 import ArtistRoles from "./ArtistRoles";
 import ArtistRolePicker from "./ArtistRolePicker";
 import RolesSection, { RoleOptions } from "./RolesSection";
 import { createClient } from "@/lib/supabase/client";
 
-type Tab = "works" | "artists" | "genres" | "jobs" | "applications" | "roles";
+type Tab = "works" | "artists" | "genres" | "jobs" | "applications" | "roles" | "newsletter";
 
 type Props = {
   initialGenres: Genre[];
@@ -38,6 +39,7 @@ type Props = {
   initialAliases: JobRoleAlias[];
   initialArtistRoles: ArtistJobRole[];
   artistRolesUnavailable: boolean;
+  newsletterEmails: string[] | null;
 };
 
 export default function AdminDashboard({
@@ -50,6 +52,7 @@ export default function AdminDashboard({
   initialAliases,
   initialArtistRoles,
   artistRolesUnavailable,
+  newsletterEmails,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("works");
 
@@ -155,6 +158,7 @@ export default function AdminDashboard({
         <TabButton active={activeTab === "jobs"} onClick={() => setActiveTab("jobs")}>Richieste di lavoro</TabButton>
         <TabButton active={activeTab === "applications"} onClick={() => setActiveTab("applications")}>Candidature</TabButton>
         <TabButton active={activeTab === "roles"} onClick={() => setActiveTab("roles")}>Ruoli</TabButton>
+        <TabButton active={activeTab === "newsletter"} onClick={() => setActiveTab("newsletter")}>Newsletter</TabButton>
       </nav>
       <JobsSection
         view={activeTab === "jobs" || activeTab === "applications" ? activeTab : null}
@@ -162,6 +166,8 @@ export default function AdminDashboard({
         initialApplications={initialApplications}
         roles={roles}
       />
+
+      {activeTab === "newsletter" && <NewsletterSection emails={newsletterEmails} />}
 
       {activeTab === "roles" && <RolesSection
         roles={roles}

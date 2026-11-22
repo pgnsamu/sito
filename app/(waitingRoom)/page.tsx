@@ -1,11 +1,57 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Grainient from "@/components/Grainient";
 
 //TODO: fare check serverside se il valore di launchdate è buono
 const launchDate = new Date("2026-12-01T12:00:00").getTime();
+const unavailableMessage = "Sign-ups are temporarily unavailable. Please try again later.";
+
+function validateEmail(email: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (!normalizedEmail) {
+    return { valid: false, message: "Please enter your email." };
+  }
+
+  if (normalizedEmail.length > 254) {
+    return { valid: false, message: "Email is too long." };
+  }
+
+  if (/\s/.test(normalizedEmail)) {
+    return { valid: false, message: "Email cannot contain spaces." };
+  }
+
+  if (/[<>{}()[\]"'`;\\]/.test(normalizedEmail)) {
+    return { valid: false, message: "Email contains invalid characters." };
+  }
+
+  const emailRegex = /^[a-zA-Z0-9.!#$%&*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/;
+
+  if (!emailRegex.test(normalizedEmail)) {
+    return { valid: false, message: "Please enter a valid email address." };
+  }
+
+  const [localPart, domain] = normalizedEmail.split("@");
+
+  if (!localPart || !domain) {
+    return { valid: false, message: "Please enter a valid email address." };
+  }
+
+  if (localPart.length > 64) {
+    return { valid: false, message: "Email local part is too long." };
+  }
+
+  if (domain.length > 253) {
+    return { valid: false, message: "Email domain is too long." };
+  }
+
+  if (domain.startsWith("-") || domain.endsWith("-") || domain.includes("..")) {
+    return { valid: false, message: "Please enter a valid email address." };
+  }
+
+  return { valid: true, message: "", email: normalizedEmail };
+}
 
 function getTimeLeft() {
   const now = new Date().getTime();
@@ -37,9 +83,52 @@ export default function ComingSoonPage() {
     seconds: 0,
   });
 
-  //const [timeLeft, setTimeLeft] = useState(getTimeLeft());
-  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
 
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const validation = validateEmail(email);
+
+    if (!validation.valid) {
+      setStatus("error");
+      setMessage(validation.message);
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: validation.email }),
+      });
+
+      const contentType = response.headers.get("content-type");
+      const data = contentType?.includes("application/json") ? await response.json() : null;
+
+      if (!response.ok || data?.success !== true) {
+        setStatus("error");
+        setMessage(typeof data?.error === "string" ? data.error : unavailableMessage);
+        return;
+      }
+
+      setStatus("success");
+      setMessage("Thanks! We'll notify you when we launch.");
+      setEmail("");
+    } catch {
+      setStatus("error");
+      setMessage(unavailableMessage);
+    }
+  }
+
+  //const [timeLeft, setTimeLeft] = useState(getTimeLeft());
   useEffect(() => {
 
     const updateTimeLeft = () => {
@@ -98,14 +187,14 @@ export default function ComingSoonPage() {
         />
       </div>
 
-      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)] text-center">
         {/*
         <div className="mb-6 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 backdrop-blur-md">
           Something new is coming
         </div>
         */}
 
-        <h1 className="max-w-4xl text-5xl font-semibold tracking-tight md:text-7xl">
+        <h1 className="max-w-4xl text-5xl font-bold tracking-tight md:text-7xl">
           COMING SOON
         </h1>
         {/*
@@ -121,25 +210,37 @@ export default function ComingSoonPage() {
           <CountdownBox value={timeLeft.seconds} label="Seconds" />
         </div>
 
-        <form className="mt-12 flex w-full max-w-md flex-col gap-3 sm:flex-row">
+        <form onSubmit={handleSubmit} className="mt-12 flex w-full max-w-md flex-col gap-3 sm:flex-row">
           <input
             type="email"
+            inputMode="email"
+            autoComplete="email"
+            maxLength={254}
+            pattern="^[a-zA-Z0-9.!#$%&*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+$"
             placeholder="Enter your email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            disabled={status === "loading"}
+            required
             className="min-h-12 flex-1 rounded-full border border-white/10 bg-white/10 px-5 text-white outline-none backdrop-blur-md placeholder:text-white/40 focus:border-white/30"
           />
-          {/* TODO: add functionality to the form */}
-          <button type="submit" className="min-h-12 rounded-full bg-white px-10 font-light text-black transition hover:bg-white/90">
-            Notify me
-          </button>
           <button
-            type="button"
-            onClick={() => router.push("/carosello")}
-            className="min-h-12 ml-3 rounded-full border border-white/10 px-10 font-light text-white transition hover:bg-white/5"
+            type="submit"
+            disabled={status === "loading"}
+            className="min-h-12 rounded-full bg-white px-10 font-medium text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            go to real homepage
+            {status === "loading" ? "Saving..." : "Notify me"}
           </button>
           
         </form>
+        <p
+          aria-live="polite"
+          className={`mt-4 min-h-5 text-sm transition-opacity ${
+            message ? "opacity-100" : "opacity-0"
+          } ${status === "success" ? "text-white/70" : "text-red-300"}`}
+        >
+          {message || "\u00A0"}
+        </p>
       </section>
     </main>
   );
@@ -154,7 +255,7 @@ function CountdownBox({
 }) {
   return (
     <div className="flex h-28 w-32 flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/10 backdrop-blur-md md:h-32 md:w-36">
-      <span className="text-4xl font-light md:text-5xl">
+      <span className="text-4xl font-bold md:text-5xl">
         {String(value).padStart(2, "0")}
       </span>
       <span className="mt-2 text-sm uppercase tracking-widest text-white/50">
