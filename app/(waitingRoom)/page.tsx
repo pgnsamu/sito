@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Grainient from "@/components/Grainient";
 
 //TODO: fare check serverside se il valore di launchdate è buono
-const launchDate = new Date("2026-06-19T00:00:00").getTime();
+const launchDate = new Date("2026-12-01T12:00:00").getTime();
 
 function getTimeLeft() {
   const now = new Date().getTime();
