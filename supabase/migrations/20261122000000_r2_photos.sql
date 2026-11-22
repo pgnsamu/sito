@@ -18,6 +18,24 @@ alter table public.photo_deletions enable row level security;
 revoke all on public.photo_assets, public.photo_deletions from anon, authenticated;
 grant all on public.photo_assets, public.photo_deletions to service_role;
 
+-- Older deployments store the work photo through works.id_image -> images.
+-- Preserve those records and expose the URL expected by the current site/API.
+alter table public.works add column if not exists url_image text;
+do $$
+begin
+  if to_regclass('public.images') is not null and exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'works' and column_name = 'id_image'
+  ) then
+    execute $backfill$
+      update public.works w set url_image = i.url_image
+      from public.images i where w.id_image = i.id
+      and (w.url_image is null or w.url_image = '')
+    $backfill$;
+  end if;
+end;
+$$;
+
 alter table public.artists add column if not exists image_key text references public.photo_assets(key);
 alter table public.works add column if not exists image_key text references public.photo_assets(key);
 create index on public.artists(image_key) where image_key is not null;

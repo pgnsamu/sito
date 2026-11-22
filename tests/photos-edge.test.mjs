@@ -12,7 +12,7 @@ const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.Scri
 const userId = '11111111-1111-4111-8111-111111111111';
 const jpeg = new Uint8Array([255, 216, 255, 224, 0, 16, 74, 70, 73, 70]);
 
-function setup({ role = 'admin', authenticated = true, configured = true } = {}) {
+function setup({ role = 'admin', authenticated = true, configured = true, endpoint = 'https://0123456789abcdef0123456789abcdef.r2.cloudflarestorage.com' } = {}) {
   const assets = new Map();
   const queue = new Map();
   const references = new Set();
@@ -84,7 +84,7 @@ function setup({ role = 'admin', authenticated = true, configured = true } = {})
     }
   }
   const env = {
-    R2_ENDPOINT: 'https://account.r2.cloudflarestorage.com',
+    R2_ENDPOINT: endpoint,
     R2_PUBLIC_URL: 'https://foto.example.test',
     R2_BUCKET_NAME: 'photos', R2_ACCESS_KEY_ID: 'key', R2_SECRET_ACCESS_KEY: 'secret',
   };
@@ -207,4 +207,15 @@ test('missing configuration returns an actionable error and malformed inputs fai
   assert.equal((await app.request(null)).status, 400);
   assert.equal((await app.request({ action: 'unknown' })).status, 400);
   assert.equal((await app.request({ action: 'complete', id: '../evil' })).status, 400);
+});
+
+test('placeholder and foreign S3 endpoints are rejected before signing an upload URL', async () => {
+  for (const endpoint of ['https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com', 'https://example.com', 'http://0123456789abcdef0123456789abcdef.r2.cloudflarestorage.com']) {
+    const app = setup({ endpoint });
+    const result = await app.prepare();
+    assert.equal(result.response.status, 503);
+    assert.match(result.error, /R2_ENDPOINT/);
+    assert.equal(app.signedRequests.length, 0);
+    assert.equal(app.assets.size, 0);
+  }
 });

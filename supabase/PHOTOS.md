@@ -66,7 +66,7 @@ Dalla radice del progetto, collegato al progetto Supabase corretto:
 
 ```bash
 npx supabase secrets set --env-file supabase/.env.r2.local
-npx supabase db push
+npx supabase db push --remote
 npx supabase functions deploy admin-photos
 npx supabase functions deploy create-artist
 npx supabase functions deploy update-artist
@@ -75,6 +75,9 @@ npx supabase functions deploy update-work
 npx supabase functions deploy delete-artist
 npx supabase functions deploy delete-work
 ```
+
+Con la CLI Supabase attuale, `--remote` indica il progetto online collegato;
+senza questo flag `db push` può puntare allo stack locale.
 
 Applica prima la migrazione: aggiunge `photo_assets`, `photo_deletions`, `image_key`
 e aggiorna la funzione atomica di creazione artisti con ruoli. Le nuove tabelle

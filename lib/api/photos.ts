@@ -25,9 +25,15 @@ export async function uploadPhoto(file: File, scope: "artists" | "works", onProg
   onProgress("Preparazione…");
   const upload = await photoRequest<{ id: string; uploadUrl: string }>({ action: "prepare", scope, type: file.type, size: file.size }, signal);
   onProgress("Caricamento…");
-  const response = await fetch(upload.uploadUrl, {
-    method: "PUT", headers: { "Content-Type": file.type }, body: file, signal,
-  });
+  let response: Response;
+  try {
+    response = await fetch(upload.uploadUrl, {
+      method: "PUT", headers: { "Content-Type": file.type }, body: file, signal,
+    });
+  } catch (error) {
+    if (signal.aborted) throw error;
+    throw new Error("Il browser non riesce a caricare la foto su R2. Verifica l’endpoint S3 e che CORS consenta l’indirizzo del sito.");
+  }
   if (!response.ok) throw new Error("Caricamento non riuscito. Riprova o verifica la configurazione CORS di R2.");
   onProgress("Verifica della foto…");
   const { photo } = await photoRequest<{ photo: PhotoValue }>({ action: "complete", id: upload.id }, signal);

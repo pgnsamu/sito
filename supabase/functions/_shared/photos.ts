@@ -19,8 +19,10 @@ export function photoConfig() {
   };
   const endpoint = new URL(required("R2_ENDPOINT"));
   const publicUrl = new URL(required("R2_PUBLIC_URL"));
-  if (endpoint.protocol !== "https:" || !endpoint.hostname.endsWith(".r2.cloudflarestorage.com") ||
-      publicUrl.protocol !== "https:" || publicUrl.search || publicUrl.hash || publicUrl.username || publicUrl.password) {
+  if (endpoint.protocol !== "https:" || !/^[a-f0-9]{32}(?:\.(?:eu|us|fedramp))?\.r2\.cloudflarestorage\.com$/.test(endpoint.hostname)) {
+    throw new PhotoError("R2_ENDPOINT non valido: copia l’URL S3 API del tuo account Cloudflare e sostituisci YOUR_ACCOUNT_ID.", 503);
+  }
+  if (publicUrl.protocol !== "https:" || publicUrl.search || publicUrl.hash || publicUrl.username || publicUrl.password) {
     throw new PhotoError("Configurazione R2 non valida.", 503);
   }
   return {
