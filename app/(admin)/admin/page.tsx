@@ -1,45 +1,11 @@
 // app/admin/page.tsx
 
 //TODO: add loading state while inserting new data e pure un qualcosa per confermare l'update
+'use server';
 
 import { redirect } from "next/navigation";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import AdminDashboard from "@/components/admin/AdminDashboard";
-
-async function loadNewsletterEmails(): Promise<string[] | null> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SECRET_KEY;
-
-  if (!url || !key) return null;
-
-  try {
-    const supabase = createSupabaseClient(url, key, { auth: { persistSession: false } });
-    const emails: string[] = [];
-
-    while (true) {
-      const query = supabase
-        .from("newsletter_subscribers")
-        .select("email")
-        .eq("subscribed", true)
-        .order("email")
-        .limit(500);
-      const lastEmail = emails.at(-1);
-      if (lastEmail !== undefined) query.gt("email", lastEmail);
-
-      const { data, error } = await query;
-      if (error) {
-        console.error("Newsletter list unavailable", error.code);
-        return null;
-      }
-
-      if (data.length === 0) return emails;
-      for (const { email } of data) emails.push(email);
-    }
-  } catch {
-    return null;
-  }
-}
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -71,7 +37,7 @@ export default async function AdminPage() {
     { data: roles, error: rolesError },
     { data: aliases },
     { data: artistRoles, error: artistRolesError },
-    newsletterEmails,
+    { data: newsletterEmails },
   ] = await Promise.all([
     supabase.from("genres").select("*").order("name", { ascending: true }),
     supabase.from("artists").select("*").order("name", { ascending: true }),
@@ -81,7 +47,7 @@ export default async function AdminPage() {
     supabase.from("job_roles").select("*").order("name"),
     supabase.from("job_role_aliases").select("role_id, name").order("name"),
     supabase.from("artist_job_roles").select("artist_id, role_id"),
-    loadNewsletterEmails(),
+    supabase.from("newsletter_subscribers").select("email").eq("subscribed", true).order("email")
   ]);
 
   return (
@@ -95,7 +61,7 @@ export default async function AdminPage() {
       initialAliases={aliases ?? []}
       initialArtistRoles={artistRoles ?? []}
       artistRolesUnavailable={Boolean(rolesError || artistRolesError)}
-      newsletterEmails={newsletterEmails}
+      newsletterEmails={newsletterEmails?.map((item) => item.email) ?? []}
     />
   );
 }
